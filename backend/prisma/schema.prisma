@@ -1,0 +1,98 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teacherClasses Class[]    @relation("TeacherClasses")
+  studentClasses Class[]    @relation("StudentClasses")
+  responses     Response[]
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  teacherId   String
+  teacher     User      @relation("TeacherClasses", fields: [teacherId], references: [id])
+  students    User[]    @relation("StudentClasses")
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id          String   @id @default(uuid())
+  title       String
+  content     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id])
+  quizzes     Quiz[]
+}
+
+model Quiz {
+  id          String   @id @default(uuid())
+  title       String
+  questions   Question[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id])
+  responses   Response[]
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  content     String
+  options     String[]
+  correctOption Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  quizId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  responses   Response[]
+}
+
+model Response {
+  id          String   @id @default(uuid())
+  selectedOption Int
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  quizId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  questionId  String
+  question    Question  @relation(fields: [questionId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+} 

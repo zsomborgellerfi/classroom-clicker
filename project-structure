@@ -1,0 +1,23 @@
+classroom-clicker/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── app.js
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── App.jsx
+│   ├── Dockerfile
+│   └── package.json
+├── .env.example
+├── docker-compose.yml
+└── README.md 
