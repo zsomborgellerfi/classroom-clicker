@@ -1,46 +1,66 @@
 import axios from "axios";
 
+import { store } from "../store";
+
 const api = axios.create({
   baseURL:
     (import.meta.env.VITE_API_URL as string) || "http://localhost:3000/api",
 });
 
+// Add request interceptor to include auth token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = store.getState().auth.token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: "ADMIN" | "TEACHER" | "STUDENT";
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
-
-export const auth = {
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>("/auth/login", credentials);
-    return data;
+// API Endpoints
+export const ENDPOINTS = {
+  AUTH: {
+    LOGIN: () => `/auth/login`,
+    REGISTER: () => `/auth/register`,
   },
-  register: async (
-    userData: LoginCredentials & { name: string; role?: User["role"] }
-  ): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>("/auth/register", userData);
-    return data;
+  CLASS: {
+    LIST: () => `/teacher/classes`,
+    GET: (classId: string) => `/teacher/classes/${classId}`,
+    CREATE: () => `/teacher/classes`,
+    UPDATE: (classId: string) => `/teacher/classes/${classId}`,
+    DELETE: (classId: string) => `/teacher/classes/${classId}`,
   },
-};
+  LESSON: {
+    LIST: (classId: string) => `/teacher/classes/${classId}/lessons`,
+    GET: (classId: string, lessonId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}`,
+    CREATE: (classId: string) => `/teacher/classes/${classId}/lessons`,
+    UPDATE: (classId: string, lessonId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}`,
+    DELETE: (classId: string, lessonId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}`,
+  },
+  QUIZ: {
+    LIST: (classId: string, lessonId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}/quizzes`,
+    GET: (classId: string, lessonId: string, quizId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}`,
+    CREATE: (classId: string, lessonId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}/quizzes`,
+    UPDATE: (classId: string, lessonId: string, quizId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}`,
+    DELETE: (classId: string, lessonId: string, quizId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}`,
+    RESPONSES: (classId: string, lessonId: string, quizId: string) =>
+      `/teacher/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}/responses`,
+  },
+  ADMIN: {
+    USERS: {
+      LIST: () => `/admin/users`,
+      CREATE: () => `/admin/users`,
+      UPDATE: (userId: string) => `/admin/users/${userId}`,
+      DELETE: (userId: string) => `/admin/users/${userId}`,
+    },
+  },
+} as const;
 
 export default api;

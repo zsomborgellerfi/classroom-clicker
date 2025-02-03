@@ -1,0 +1,56 @@
+import express from "express";
+
+import classController from "../controllers/class.controller";
+import lessonController from "../controllers/lesson.controller";
+import quizController from "../controllers/quiz.controller";
+import { UserRole } from "../enums/userRole";
+import { authMiddleware, roleCheck } from "../middleware/auth";
+
+const router = express.Router();
+
+// Apply authentication to all routes
+router.use(authMiddleware);
+router.use(roleCheck([UserRole.TEACHER]));
+
+// Class management
+router.get("/classes", classController.getAll);
+router.post("/classes", classController.create);
+router.get("/classes/:id", classController.getById);
+router.put("/classes/:id", classController.update);
+router.delete("/classes/:id", classController.delete);
+router.post("/classes/:id/students", classController.addStudent);
+
+// Lesson management
+router.get("/classes/:classId/lessons", lessonController.getAll);
+router.post("/classes/:classId/lessons", lessonController.create);
+router.get("/classes/:classId/lessons/:lessonId", lessonController.getById);
+router.put("/classes/:classId/lessons/:lessonId", lessonController.update);
+router.delete("/classes/:classId/lessons/:lessonId", lessonController.delete);
+
+// Quiz management
+router.get(
+  "/classes/:classId/lessons/:lessonId/quizzes",
+  quizController.getAll,
+);
+router.post(
+  "/classes/:classId/lessons/:lessonId/quizzes",
+  quizController.create,
+);
+router.get(
+  "/classes/:classId/lessons/:lessonId/quizzes/:quizId",
+  quizController.getById,
+);
+router.put(
+  "/classes/:classId/lessons/:lessonId/quizzes/:quizId",
+  quizController.update,
+);
+router.delete(
+  "/classes/:classId/lessons/:lessonId/quizzes/:quizId",
+  quizController.delete,
+);
+router.get(
+  "/classes/:classId/lessons/:lessonId/quizzes/:quizId/responses",
+  quizController.getResponses,
+);
+
+export default router;

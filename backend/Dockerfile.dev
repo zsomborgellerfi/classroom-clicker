@@ -1,0 +1,25 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install OpenSSL for Prisma (handles both amd64 and arm64)
+RUN apk add --no-cache libc6-compat openssl
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm install
+
+# Generate Prisma Client only
+RUN npx prisma generate
+
+# Copy source code
+COPY . .
+
+EXPOSE 3000
+
+# Development mode with hot reload
+CMD ["npm", "run", "dev"]

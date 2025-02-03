@@ -1,25 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from "express";
 
 class ErrorService {
-  static handleError(error: Error, req: Request, res: Response, next: NextFunction) {
+  static handleError(
+    error: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     console.error(error);
 
-    if (error.name === 'ValidationError') {
+    if (error.name === "ValidationError") {
       return res.status(400).json({
-        error: error.message
+        error: error.message,
       });
     }
 
-    if (error.name === 'UnauthorizedError') {
+    if (error.name === "UnauthorizedError") {
       return res.status(401).json({
-        error: 'Invalid token'
+        error: "Invalid token",
       });
     }
 
     return res.status(500).json({
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 }
 
-export default ErrorService; 
+export default ErrorService;

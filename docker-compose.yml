@@ -2,30 +2,47 @@ version: "3.8"
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/classroom_clicker
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/classroom_clicker?schema=public
       - JWT_SECRET=${JWT_SECRET}
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
-      - ./backend/scripts:/app/scripts
+      - ./backend/nodemon.json:/app/nodemon.json
+    command: >
+      sh -c "npm run prisma:generate &&
+             sleep 5 &&
+             npx prisma migrate dev --name init &&
+             npx prisma migrate deploy --schema=/app/prisma/schema.prisma &&
+             npx prisma db seed &&
+             npm run dev"
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     ports:
-      - "80:80"
+      - "5173:5173"
+    networks:
+      - app-network
     depends_on:
       - backend
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app:delegated
       - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
 
   db:
     image: postgres:14-alpine
@@ -66,3 +83,7 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+
+networks:
+  app-network:
+    driver: bridge
