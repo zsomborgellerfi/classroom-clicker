@@ -19,10 +19,10 @@ import {
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { LanguageSelector } from "../components/common/LanguageSelector";
-import { useTranslation } from "../hooks/useTranslation";
-import { useAppDispatch } from "../store/hooks";
-import { logout } from "../store/slices/auth/slice";
+import { LanguageSelector } from "@/shared/ui/LanguageSelector";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useAppDispatch } from "@/store/hooks";
+import { logout } from "@/store/slices/auth/slice";
 
 const DRAWER_WIDTH = 240;
 

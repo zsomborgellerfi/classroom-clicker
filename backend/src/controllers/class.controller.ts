@@ -8,19 +8,19 @@ import { AuthRequest } from "../types";
 
 const prisma = new PrismaClient();
 
-class ClassController {
-  private async generateUniqueInviteCode() {
-    while (true) {
-      const code = crypto.randomBytes(4).toString("hex").toUpperCase();
-      const existing = await prisma.classInvite.findUnique({
-        where: { code },
-      });
-      if (!existing) {
-        return code;
-      }
+const generateUniqueInviteCode = async () => {
+  while (true) {
+    const code = crypto.randomBytes(4).toString("hex").toUpperCase();
+    const existing = await prisma.classInvite.findUnique({
+      where: { code },
+    });
+    if (!existing) {
+      return code;
     }
   }
+};
 
+class ClassController {
   async create(req: AuthRequest, res: Response) {
     try {
       const { name, description } = req.body;
@@ -335,7 +335,7 @@ class ClassController {
         return res.status(403).json({ error: "Unauthorized" });
       }
 
-      const code = await this.generateUniqueInviteCode();
+      const code = await generateUniqueInviteCode();
       const sanitizedMaxUses = maxUses && maxUses > 0 ? Math.floor(maxUses) : null;
       const effectiveExpires =
         expiresInHours && expiresInHours > 0
