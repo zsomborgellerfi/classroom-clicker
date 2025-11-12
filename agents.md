@@ -1,0 +1,96 @@
+# Classroom Clicker Agents
+
+## Why This Exists
+- Keep multi-agent work aligned with the actual monorepo layout (`backend/`, `frontend/`, `shared/`, container scripts, and infra).
+- Capture the domain language (classes, lessons, quizzes, responses) defined in `backend/prisma/schema.prisma` and the REST surface in `backend/src/routes`.
+- Make it obvious where each agent hands off work so we do not duplicate efforts or drift from the TypeScript contracts shared with the React client.
+
+## Product Snapshot
+- Web-based classroom clicker: teachers manage classes, lessons, and quizzes; students respond; admins manage users.
+- Backend (`backend/`): Express + TypeScript + Prisma/PostgreSQL, JWT auth (`backend/src/app.ts`, `backend/src/middleware`), role-gated routers (`backend/src/routes`).
+- Frontend (`frontend/`): React 18 + Vite + Redux Toolkit + React Query + MUI (`frontend/src/App.tsx`, `frontend/src/store`).
+- Shared contracts in `shared/types` keep models consistent between client and server builds.
+- Docker-first local orchestration via `docker-compose.yml`, with dev scripts (`dev.sh`, `dev-detached.sh`) bootstrapping services plus `nginx/` edge proxy and `pgadmin/`.
+
+## Domain Entities (from Prisma)
+| Entity | Relationships / Notes |
+| --- | --- |
+| `User` | Roles: `ADMIN`, `TEACHER`, `STUDENT`; teachers own `Class` records, students enroll via `Class.students`; responses recorded per quiz (`backend/prisma/schema.prisma`). |
+| `Class` | Tied to a single teacher; aggregates `Lesson` and enrolled students; counts used in controllers for dashboards (`backend/src/controllers/class.controller.ts`). |
+| `Lesson` | Belongs to class; ordered by `createdAt`; holds quizzes (`backend/src/controllers/lesson.controller.ts`). |
+| `Quiz` | Single-question quizzes with structured options; route handlers enforce 2–10 options and exactly one correct answer (`backend/src/controllers/quiz.controller.ts`). |
+| `Question`, `QuizOption`, `Response`, `QuizAnswer` | Maintain quiz content and student submissions; cascade deletes propagate through Prisma relations. |
+
+## Toolchain & Commands
+- Backend: `npm run dev` (nodemon) / `npm run build` / `npm run seed`; Prisma CLI for schema migrations and seeding; environment via `.env` mirrored from `.env.example`.
+- Frontend: `npm run dev` (Vite), `npm run build`, `npm run lint`, `npm run format`.
+- Containers: `docker-compose up --build` wires backend, frontend, Postgres, pgAdmin, and nginx; per-service Dockerfiles live under `backend/` and `frontend/`.
+
+## Collaboration Patterns
+- **Contracts first**: Any schema or DTO change propagates `shared/types/` → backend validators (`backend/src/schemas`) → frontend API hooks (`frontend/src/lib/api.ts`, RTK slices, React Query hooks).
+- **Auth-aware UX**: Role-based routing lives in `frontend/src/routes/ProtectedRoute.tsx` and `frontend/src/components/common/RoleRoute.tsx`; backend mirrors this with `authMiddleware` + `roleCheck`.
+- **Testing expectations**: Backend uses Jest (`backend/package.json`), though suites are thin—QA agent should backfill; frontend relies on manual/React Query testing for now.
+- **Observability**: `/health` endpoint (`backend/src/app.ts`) is the lightweight liveness probe; additional metrics/logging are to be added by Platform/QA agents when needed.
+
+## Agent Roster
+
+### 1. Platform Architect Agent
+- **Mission**: Guard system-wide coherence across services, environments, and shared abstractions.
+- **Focus Areas**:
+  - Define cross-cutting architecture choices (auth strategy, database boundaries, shared types).
+  - Approve structural refactors affecting both client and server.
+  - Ensure scripts (`dev.sh`, Dockerfiles, `docker-compose.yml`) stay in sync with source expectations.
+- **Inputs/Outputs**:
+  - Inputs: product requirements, infra constraints, feedback from feature agents.
+  - Outputs: updated docs, high-level design notes, backlog of tech-debt tickets.
+- **Escalations**: Changes that impact deployment topology, secrets handling, or schema migrations require Architect sign-off before implementation.
+
+### 2. Backend/API Agent
+- **Mission**: Own Express application logic, Prisma schema evolution, validation, and API stability.
+- **Key Responsibilities**:
+  - Manage controllers/services/middleware under `backend/src` and keep `PrismaClient` usage efficient.
+  - Extend routers (`backend/src/routes`) with versioned endpoints and role enforcement.
+  - Implement validation layers via Zod schemas (`backend/src/schemas`) plus shared DTOs.
+  - Maintain JWT auth flows (`backend/src/controllers/auth.controller.ts`, `backend/src/middleware/auth.ts`) and password hashing (bcrypt).
+  - Make sure migrations + seeds (`backend/src/db/seed.ts`) cover new models.
+- **Hand-offs**:
+  - Publishes new API shapes to Shared Contracts Agent.
+  - Provides REST examples and error envelopes to Frontend Agent for integration.
+- **Quality Gates**: Add/refresh Jest + Supertest suites, ensure Prisma migrations are committed, keep consistent logging and status codes.
+
+### 3. Frontend Experience Agent
+- **Mission**: Deliver role-aware UX in React, integrating cleanly with the REST API and shared models.
+- **Key Responsibilities**:
+  - Manage routing (`frontend/src/App.tsx`) and guard logic (`ProtectedRoute`, `RoleRoute`).
+  - Compose dashboards (`frontend/src/pages/**`) and tables/forms under `frontend/src/components`.
+  - Coordinate state across Redux Toolkit (`frontend/src/store`) and React Query for server cache.
+  - Implement data fetching through `frontend/src/lib/api.ts`, honoring ENDPOINTS map.
+  - Maintain styling in `frontend/src/styles/main.scss` and `frontend/src/theme.ts`.
+- **Hand-offs**:
+  - Consumes shared types + API docs; feeds back UX constraints or missing endpoints to Backend Agent.
+  - Provides QA Agent with interaction paths and feature flags for testing.
+- **Quality Gates**: Lint + format clean, strict TypeScript, accessible components, loading/error states for all queries/mutations, toast notifications for outcomes.
+
+### 4. Shared Contracts Agent
+- **Mission**: Synchronize DTOs, enums, and validation schemas across `shared/`, backend, and frontend.
+- **Key Responsibilities**:
+  - Author and evolve `shared/types/*.d.ts`, ensuring they map 1:1 to Prisma models (and any derived view models).
+  - Coordinate Zod schemas and frontend form schemas so they stay in lockstep.
+  - Detect breaking changes (e.g., renaming `QuizOption` fields) and communicate migration steps.
+  - Automate or document the `backend npm run build` step that copies `../shared` into `dist/`.
+- **Quality Gates**: Version shared contracts, add checks (e.g., TypeScript project references) if drift becomes likely, document serialization nuances (dates vs ISO strings).
+
+### 5. QA & Delivery Agent
+- **Mission**: Validate end-to-end behavior, enforce release readiness, and watch observability hooks.
+- **Key Responsibilities**:
+  - Expand Jest coverage in backend, add Playwright/Cypress (future) for critical flows, and ensure CI runs lint + tests + builds.
+  - Define manual regression checklists (auth, teacher workflows, admin user edits) until automation exists.
+  - Monitor `/health` and add deeper telemetry/logging strategies (request IDs, structured logs).
+  - Own release tagging, Docker image validation, and smoke tests against docker-compose environments.
+- **Hand-offs**:
+  - Surfaces bugs to respective agents with reproducible steps.
+  - Provides release notes summarizing validated scope.
+- **Quality Gates**: No release without passing API + UI tests, schema migrations tested against sample data, and rollback plan captured.
+
+---
+Use this file as the single source of truth when spinning up new agents or clarifying ownership. Update it whenever responsibilities or stack choices evolve.

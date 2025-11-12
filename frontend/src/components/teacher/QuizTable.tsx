@@ -2,6 +2,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PreviewIcon from "@mui/icons-material/Preview";
 import {
+  Chip,
   IconButton,
   Paper,
   Table,
@@ -64,6 +65,7 @@ export function QuizTable({
         <TableHead>
           <TableRow>
             <TableCell>{t("teacher.quizzes.table.title")}</TableCell>
+            <TableCell>{t("teacher.quizzes.table.status")}</TableCell>
             <TableCell align="center">
               {t("teacher.quizzes.table.questions")}
             </TableCell>
@@ -80,6 +82,17 @@ export function QuizTable({
           {quizzes.map((quiz) => (
             <TableRow key={quiz.id}>
               <TableCell>{quiz.title}</TableCell>
+              <TableCell>
+                <Chip
+                  label={
+                    quiz.isActive
+                      ? t("teacher.quizzes.table.active")
+                      : t("teacher.quizzes.table.inactive")
+                  }
+                  color={quiz.isActive ? "success" : "default"}
+                  size="small"
+                />
+              </TableCell>
               <TableCell align="center">
                 {quiz._count?.questions ?? 0}
               </TableCell>

@@ -8,19 +8,18 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
   FormControlLabel,
-  FormHelperText,
   IconButton,
   Radio,
   RadioGroup,
+  Switch,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
@@ -36,6 +35,7 @@ interface QuizFormDialogProps {
   quiz?: {
     id: string;
     title: string;
+    isActive?: boolean;
     questions: Question[];
   } | null;
   open: boolean;
@@ -57,6 +57,7 @@ const quizSchema = z.object({
     .refine((options) => options.filter((opt) => opt.isCorrect).length === 1, {
       message: "Must select exactly one correct answer",
     }),
+  isActive: z.boolean().default(false),
 });
 
 type QuizFormData = z.infer<typeof quizSchema>;
@@ -89,6 +90,7 @@ export function QuizFormDialog({
         { text: "", isCorrect: false },
         { text: "", isCorrect: false },
       ],
+      isActive: false,
     },
   });
 
@@ -110,6 +112,7 @@ export function QuizFormDialog({
           text: opt.text,
           isCorrect: opt.isCorrect,
         })),
+        isActive: Boolean(quiz.isActive),
       });
     } else if (!open) {
       reset();
@@ -187,7 +190,7 @@ export function QuizFormDialog({
         <DialogContent>
           <TextField
             {...register("title")}
-            label={t("teacher.quizzes.title.label")}
+            label={t("teacher.quizzes.titleInput.label")}
             error={!!errors.title}
             helperText={errors.title?.message}
             fullWidth
@@ -203,6 +206,28 @@ export function QuizFormDialog({
             multiline
             rows={2}
           />
+          <Box sx={{ mt: 1 }}>
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={field.value}
+                      onChange={(event) =>
+                        field.onChange(event.target.checked)
+                      }
+                    />
+                  }
+                  label={t("teacher.quizzes.isActive")}
+                />
+              )}
+            />
+            <Typography variant="caption" color="text.secondary">
+              {t("teacher.quizzes.inactiveHint")}
+            </Typography>
+          </Box>
           <Box sx={{ mt: 2 }}>
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
@@ -233,66 +258,47 @@ export function QuizFormDialog({
                     display: "flex",
                     alignItems: "center",
                     gap: 1,
+                    mb: 1,
                   }}
                 >
-                  <FormControl
+                  <Radio value={index} />
+                  <TextField
+                    {...register(`options.${index}.text` as const)}
+                    label={t("teacher.quizzes.option.label", {
+                      number: index + 1,
+                    })}
                     error={!!errors.options?.[index]?.text}
-                    sx={{ flex: 1 }}
-                  >
-                    <TextField
-                      {...register(`options.${index}.text`)}
-                      label={t("teacher.quizzes.option.label", {
-                        number: index + 1,
-                      })}
-                      error={!!errors.options?.[index]?.text}
-                      helperText={errors.options?.[index]?.text?.message}
-                      fullWidth
-                      margin="normal"
-                    />
-                  </FormControl>
-                  <FormControlLabel
-                    value={index}
-                    control={<Radio />}
-                    label={t("teacher.quizzes.option.correct")}
-                    sx={{ ml: 0 }}
+                    helperText={errors.options?.[index]?.text?.message}
+                    fullWidth
                   />
-                  {options.length > 2 && (
-                    <Tooltip title={t("teacher.quizzes.options.remove")}>
+                  <Tooltip title={t("teacher.quizzes.options.remove")}>
+                    <span>
                       <IconButton
                         onClick={() => handleRemoveOption(index)}
+                        disabled={options.length <= 2}
                         color="error"
                         size="small"
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </Tooltip>
-                  )}
+                    </span>
+                  </Tooltip>
                 </Box>
               ))}
             </RadioGroup>
-            {errors.options && (
-              <FormHelperText error>{errors.options.message}</FormHelperText>
+            {typeof errors.options?.message === "string" && (
+              <Typography variant="body2" color="error">
+                {errors.options.message}
+              </Typography>
             )}
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>{t("common.cancel")}</Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={quizMutation.isPending}
-          >
-            {quizMutation.isPending
-              ? t(
-                  isEditMode
-                    ? "teacher.quizzes.edit.loading"
-                    : "teacher.quizzes.create.loading",
-                )
-              : t(
-                  isEditMode
-                    ? "teacher.quizzes.edit.button"
-                    : "teacher.quizzes.create.button",
-                )}
+          <Button type="submit" variant="contained">
+            {isEditMode
+              ? t("teacher.quizzes.edit.button")
+              : t("teacher.quizzes.create.button")}
           </Button>
         </DialogActions>
       </form>

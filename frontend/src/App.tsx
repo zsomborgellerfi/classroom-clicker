@@ -3,12 +3,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { Provider } from "react-redux";
-import {
-  Navigate,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-} from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import { NotFound } from "./components/common/NotFound";
@@ -18,7 +13,12 @@ import Login from "./pages/Login";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
+import StudentClassDetails from "./pages/student/ClassDetails";
+import StudentProgress from "./pages/student/Progress";
+import StudentQuiz from "./pages/student/Quiz";
+import StudentClasses from "./pages/student/StudentClasses";
 import ClassDetails from "./pages/teacher/ClassDetails";
+import ClassProgress from "./pages/teacher/ClassProgress";
 import LessonQuizzes from "./pages/teacher/LessonQuizzes";
 import { QuizDetails } from "./pages/teacher/QuizDetails";
 import TeacherClasses from "./pages/teacher/TeacherClasses";
@@ -40,10 +40,15 @@ function App() {
 
             {/* Teacher routes */}
             <Route element={<RoleRoute roles={[UserRole.TEACHER]} />}>
-              <Route path="/teacher" element={<TeacherClasses />} />
+              <Route path="/teacher" element={<TeacherDashboard />} />
+              <Route path="/teacher/classes" element={<TeacherClasses />} />
               <Route
                 path="/teacher/classes/:classId"
                 element={<ClassDetails />}
+              />
+              <Route
+                path="/teacher/classes/:classId/progress"
+                element={<ClassProgress />}
               />
               <Route
                 path="/teacher/classes/:classId/lessons/:lessonId/quizzes"
@@ -61,12 +66,19 @@ function App() {
               <Route path="/admin/users" element={<UserManagement />} />
             </Route>
 
-            <Route
-              path="/student"
-              element={
-                <ProtectedRoute roles={[UserRole.STUDENT]}>123</ProtectedRoute>
-              }
-            />
+            {/* Student routes */}
+            <Route element={<RoleRoute roles={[UserRole.STUDENT]} />}>
+              <Route path="/student" element={<StudentClasses />} />
+              <Route
+                path="/student/classes/:classId"
+                element={<StudentClassDetails />}
+              />
+              <Route
+                path="/student/classes/:classId/lessons/:lessonId/quizzes/:quizId"
+                element={<StudentQuiz />}
+              />
+              <Route path="/student/progress" element={<StudentProgress />} />
+            </Route>
             <Route
               path="/"
               element={
@@ -99,7 +111,7 @@ function RoleBasedRedirect() {
     } else if (user?.role === UserRole.TEACHER) {
       navigate("/teacher");
     } else if (user?.role === UserRole.STUDENT) {
-      navigate("/student"); // You'll need to create student routes later
+      navigate("/student");
     }
   }, [user, navigate]);
 

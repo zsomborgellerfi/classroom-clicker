@@ -13,14 +13,13 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-import { Class } from "@shared/types";
-
 import { useTranslation } from "../../hooks/useTranslation";
 import api from "../../lib/api";
 import { ENDPOINTS } from "../../lib/api";
+import type { ClassListItem } from "./ClassTable";
 
 interface ClassFormDialogProps {
-  classData?: Class | null;
+  classData?: ClassListItem | null;
   open: boolean;
   onClose: () => void;
 }

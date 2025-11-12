@@ -3,6 +3,7 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 import { en } from "./locales/en";
+import { hu } from "./locales/hu";
 
 i18n
   .use(LanguageDetector)
@@ -11,6 +12,9 @@ i18n
     resources: {
       en: {
         translation: en,
+      },
+      hu: {
+        translation: hu,
       },
     },
     lng: "en", // Default language

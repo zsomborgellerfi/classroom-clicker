@@ -28,6 +28,14 @@ export const ENDPOINTS = {
     CREATE: () => `/teacher/classes`,
     UPDATE: (classId: string) => `/teacher/classes/${classId}`,
     DELETE: (classId: string) => `/teacher/classes/${classId}`,
+    ASSIGN_STUDENT: (classId: string) => `/teacher/classes/${classId}/students`,
+    INVITES: {
+      LIST: (classId: string) => `/teacher/classes/${classId}/invites`,
+      CREATE: (classId: string) => `/teacher/classes/${classId}/invites`,
+      DELETE: (classId: string, inviteId: string) =>
+        `/teacher/classes/${classId}/invites/${inviteId}`,
+    },
+    PROGRESS: (classId: string) => `/teacher/classes/${classId}/progress`,
   },
   LESSON: {
     LIST: (classId: string) => `/teacher/classes/${classId}/lessons`,
@@ -59,6 +67,22 @@ export const ENDPOINTS = {
       CREATE: () => `/admin/users`,
       UPDATE: (userId: string) => `/admin/users/${userId}`,
       DELETE: (userId: string) => `/admin/users/${userId}`,
+    },
+  },
+  TEACHER: {
+    STUDENTS: () => `/teacher/students`,
+    DASHBOARD: () => `/teacher/dashboard`,
+  },
+  STUDENT: {
+    CLASSES: {
+      LIST: () => `/student/classes`,
+      GET: (classId: string) => `/student/classes/${classId}`,
+    },
+    JOIN: () => `/student/classes/join`,
+    PROGRESS: () => `/student/progress`,
+    QUIZ: {
+      SUBMIT: (classId: string, lessonId: string, quizId: string) =>
+        `/student/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}/responses`,
     },
   },
 } as const;

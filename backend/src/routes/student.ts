@@ -17,7 +17,19 @@ router.get("/classes", classController.getEnrolled);
 router.get("/classes/:id", classController.getById);
 router.get("/classes/:classId/lessons", lessonController.getAll);
 router.get("/classes/:classId/lessons/:lessonId", lessonController.getById);
-router.get("/classes/:classId/lessons/:lessonId/quizzes", quizController.getAll);
-router.get("/classes/:classId/lessons/:lessonId/quizzes/:quizId", quizController.getById);
+router.get(
+  "/classes/:classId/lessons/:lessonId/quizzes",
+  quizController.getAll,
+);
+router.get(
+  "/classes/:classId/lessons/:lessonId/quizzes/:quizId",
+  quizController.getById,
+);
+router.post(
+  "/classes/:classId/lessons/:lessonId/quizzes/:quizId/responses",
+  quizController.submitResponse,
+);
+router.post("/classes/join", classController.joinWithInviteCode);
+router.get("/progress", classController.getStudentProgress);
 
-export default router; 
+export default router;

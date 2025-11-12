@@ -3,11 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Class } from "@shared/types";
-
 import { AlertDialog } from "../../components/common/AlertDialog";
 import { ClassFormDialog } from "../../components/teacher/ClassFormDialog";
-import { ClassTable } from "../../components/teacher/ClassTable";
+import {
+  ClassListItem,
+  ClassTable,
+} from "../../components/teacher/ClassTable";
 import { useTranslation } from "../../hooks/useTranslation";
 import { TeacherLayout } from "../../layouts/TeacherLayout";
 import api from "../../lib/api";
@@ -15,9 +16,9 @@ import { ENDPOINTS } from "../../lib/api";
 
 export default function TeacherClasses() {
   const { t } = useTranslation();
-  const [editingClass, setEditingClass] = useState<Class | null>(null);
+  const [editingClass, setEditingClass] = useState<ClassListItem | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [deleteClass, setDeleteClass] = useState<Class | null>(null);
+  const [deleteClass, setDeleteClass] = useState<ClassListItem | null>(null);
   const queryClient = useQueryClient();
 
   const deleteClassMutation = useMutation({
@@ -34,7 +35,7 @@ export default function TeacherClasses() {
     },
   });
 
-  const handleDelete = (classData: Class) => {
+  const handleDelete = (classData: ClassListItem) => {
     setDeleteClass(classData);
   };
 

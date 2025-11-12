@@ -5,6 +5,7 @@ import { QuizOption } from './quizOption';
 export interface Quiz {
   id: string;
   title: string;
+  isActive: boolean;
   createdAt: string;
   lessonId: string;
   questions: Question[];

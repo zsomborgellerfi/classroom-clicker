@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
+import { UserRole } from "../enums/userRole";
 import { AuthRequest } from "../types";
 
 const prisma = new PrismaClient();
@@ -11,6 +12,10 @@ class LessonController {
       const { classId } = req.params;
       const { title, content } = req.body;
       const teacherId = req.user?.id;
+
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
 
       // Verify class exists and belongs to teacher
       const classData = await prisma.class.findFirst({
@@ -41,18 +46,36 @@ class LessonController {
   async getAll(req: AuthRequest, res: Response) {
     try {
       const { classId } = req.params;
-      const teacherId = req.user?.id;
+      const user = req.user;
 
-      // Verify class belongs to teacher
-      const classData = await prisma.class.findFirst({
-        where: {
-          id: classId,
-          teacherId,
-        },
-      });
+      if (user?.role === UserRole.TEACHER) {
+        const classData = await prisma.class.findFirst({
+          where: {
+            id: classId,
+            teacherId: user.id,
+          },
+        });
 
-      if (!classData) {
-        return res.status(404).json({ error: "Class not found" });
+        if (!classData) {
+          return res.status(404).json({ error: "Class not found" });
+        }
+      } else if (user?.role === UserRole.STUDENT) {
+        const isEnrolled = await prisma.class.findFirst({
+          where: {
+            id: classId,
+            students: {
+              some: {
+                id: user.id,
+              },
+            },
+          },
+        });
+
+        if (!isEnrolled) {
+          return res.status(403).json({ error: "Unauthorized" });
+        }
+      } else {
+        return res.status(403).json({ error: "Unauthorized" });
       }
 
       const lessons = await prisma.lesson.findMany({
@@ -75,6 +98,10 @@ class LessonController {
       const { classId, lessonId } = req.params;
       const { title, content } = req.body;
       const teacherId = req.user?.id;
+
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
 
       // Verify class belongs to teacher
       const classData = await prisma.class.findFirst({
@@ -110,6 +137,10 @@ class LessonController {
       const { classId, lessonId } = req.params;
       const teacherId = req.user?.id;
 
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
       // Verify class belongs to teacher
       const classData = await prisma.class.findFirst({
         where: {
@@ -138,18 +169,36 @@ class LessonController {
   async getById(req: AuthRequest, res: Response) {
     try {
       const { classId, lessonId } = req.params;
-      const teacherId = req.user?.id;
+      const user = req.user;
 
-      // Verify class belongs to teacher
-      const classData = await prisma.class.findFirst({
-        where: {
-          id: classId,
-          teacherId,
-        },
-      });
+      if (user?.role === UserRole.TEACHER) {
+        const classData = await prisma.class.findFirst({
+          where: {
+            id: classId,
+            teacherId: user.id,
+          },
+        });
 
-      if (!classData) {
-        return res.status(404).json({ error: "Class not found" });
+        if (!classData) {
+          return res.status(404).json({ error: "Class not found" });
+        }
+      } else if (user?.role === UserRole.STUDENT) {
+        const isEnrolled = await prisma.class.findFirst({
+          where: {
+            id: classId,
+            students: {
+              some: {
+                id: user.id,
+              },
+            },
+          },
+        });
+
+        if (!isEnrolled) {
+          return res.status(403).json({ error: "Unauthorized" });
+        }
+      } else {
+        return res.status(403).json({ error: "Unauthorized" });
       }
 
       const lesson = await prisma.lesson.findUnique({

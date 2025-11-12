@@ -20,7 +20,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import api from "../../lib/api";
 import { ENDPOINTS } from "../../lib/api";
 
-interface Class {
+export interface ClassListItem {
   id: string;
   name: string;
   description: string;
@@ -30,11 +30,11 @@ interface Class {
   };
 }
 
-type ClassesResponse = Class[];
+type ClassesResponse = ClassListItem[];
 
 interface ClassTableProps {
-  onEdit: (classData: Class) => void;
-  onDelete: (classData: Class) => void;
+  onEdit: (classData: ClassListItem) => void;
+  onDelete: (classData: ClassListItem) => void;
 }
 
 export function ClassTable({ onEdit, onDelete }: ClassTableProps) {
@@ -44,7 +44,7 @@ export function ClassTable({ onEdit, onDelete }: ClassTableProps) {
   const { data: classes, isLoading } = useQuery<ClassesResponse>({
     queryKey: ["classes"],
     queryFn: async () => {
-      const response = await api.get<Class[]>(ENDPOINTS.CLASS.LIST());
+      const response = await api.get<ClassListItem[]>(ENDPOINTS.CLASS.LIST());
       return response.data;
     },
   });

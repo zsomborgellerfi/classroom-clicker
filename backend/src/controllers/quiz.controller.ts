@@ -1,30 +1,57 @@
 import { PrismaClient } from "@prisma/client";
-import { Request, Response } from "express";
+import { Response } from "express";
 
+import { UserRole } from "../enums/userRole";
 import { AuthRequest } from "../types";
 
-const prismaClient = new PrismaClient();
+const prisma = new PrismaClient();
+
+async function getClassForUser(classId: string, user?: AuthRequest["user"]) {
+  if (!user) {
+    return null;
+  }
+
+  if (user.role === UserRole.TEACHER) {
+    return prisma.class.findFirst({
+      where: {
+        id: classId,
+        teacherId: user.id,
+      },
+    });
+  }
+
+  if (user.role === UserRole.STUDENT) {
+    return prisma.class.findFirst({
+      where: {
+        id: classId,
+        students: {
+          some: {
+            id: user.id,
+          },
+        },
+      },
+    });
+  }
+
+  if (user.role === UserRole.ADMIN) {
+    return prisma.class.findUnique({ where: { id: classId } });
+  }
+
+  return null;
+}
 
 class QuizController {
   async getAll(req: AuthRequest, res: Response) {
     try {
       const { classId, lessonId } = req.params;
-      const teacherId = req.user?.id;
 
-      // Verify class belongs to teacher
-      const classData = await prismaClient.class.findFirst({
-        where: {
-          id: classId,
-          teacherId,
-        },
-      });
+      const classData = await getClassForUser(classId, req.user);
 
       if (!classData) {
         return res.status(404).json({ error: "Class not found" });
       }
 
-      // Verify lesson belongs to class
-      const lesson = await prismaClient.lesson.findFirst({
+      const lesson = await prisma.lesson.findFirst({
         where: {
           id: lessonId,
           classId,
@@ -35,7 +62,7 @@ class QuizController {
         return res.status(404).json({ error: "Lesson not found" });
       }
 
-      const quizzes = await prismaClient.quiz.findMany({
+      const quizzes = await prisma.quiz.findMany({
         where: {
           lessonId,
         },
@@ -44,6 +71,11 @@ class QuizController {
             select: {
               questions: true,
               responses: true,
+            },
+          },
+          questions: {
+            include: {
+              options: true,
             },
           },
         },
@@ -61,17 +93,19 @@ class QuizController {
   async getById(req: AuthRequest, res: Response) {
     try {
       const { classId, lessonId, quizId } = req.params;
-      const teacherId = req.user?.id;
 
-      const quiz = await prismaClient.quiz.findFirst({
+      const classData = await getClassForUser(classId, req.user);
+
+      if (!classData) {
+        return res.status(404).json({ error: "Class not found" });
+      }
+
+      const quiz = await prisma.quiz.findFirst({
         where: {
           id: quizId,
           lessonId,
           lesson: {
             classId,
-            class: {
-              teacherId,
-            },
           },
         },
         include: {
@@ -96,10 +130,12 @@ class QuizController {
   async create(req: AuthRequest, res: Response) {
     try {
       const { classId, lessonId } = req.params;
-      const { title, question, options } = req.body;
-      const teacherId = req.user?.id;
+      const { title, question, options, isActive } = req.body;
 
-      // Validate number of options
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
       if (
         !Array.isArray(options) ||
         options.length < 2 ||
@@ -110,7 +146,6 @@ class QuizController {
         });
       }
 
-      // Validate correct answer
       const correctOptions = options.filter(
         (opt: { isCorrect: boolean }) => opt.isCorrect,
       );
@@ -120,11 +155,10 @@ class QuizController {
         });
       }
 
-      // Verify class belongs to teacher
-      const classData = await prismaClient.class.findFirst({
+      const classData = await prisma.class.findFirst({
         where: {
           id: classId,
-          teacherId,
+          teacherId: req.user.id,
         },
       });
 
@@ -132,8 +166,7 @@ class QuizController {
         return res.status(404).json({ error: "Class not found" });
       }
 
-      // Verify lesson belongs to class
-      const lesson = await prismaClient.lesson.findFirst({
+      const lesson = await prisma.lesson.findFirst({
         where: {
           id: lessonId,
           classId,
@@ -144,17 +177,15 @@ class QuizController {
         return res.status(404).json({ error: "Lesson not found" });
       }
 
-      // Create quiz with question and options in a transaction
-      const quiz = await prismaClient.$transaction(async (tx) => {
-        // Create the quiz
+      const quiz = await prisma.$transaction(async (tx) => {
         const newQuiz = await tx.quiz.create({
           data: {
             title,
             lessonId,
+            isActive: Boolean(isActive),
           },
         });
 
-        // Create the question
         const newQuestion = await tx.question.create({
           data: {
             text: question,
@@ -189,10 +220,12 @@ class QuizController {
   async update(req: AuthRequest, res: Response) {
     try {
       const { classId, lessonId, quizId } = req.params;
-      const { title, question, options } = req.body;
-      const teacherId = req.user?.id;
+      const { title, question, options, isActive } = req.body;
 
-      // Validate number of options
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
       if (
         !Array.isArray(options) ||
         options.length < 2 ||
@@ -203,7 +236,6 @@ class QuizController {
         });
       }
 
-      // Validate correct answer
       const correctOptions = options.filter(
         (opt: { isCorrect: boolean }) => opt.isCorrect,
       );
@@ -213,11 +245,10 @@ class QuizController {
         });
       }
 
-      // Verify class belongs to teacher
-      const classData = await prismaClient.class.findFirst({
+      const classData = await prisma.class.findFirst({
         where: {
           id: classId,
-          teacherId,
+          teacherId: req.user.id,
         },
       });
 
@@ -225,8 +256,7 @@ class QuizController {
         return res.status(404).json({ error: "Class not found" });
       }
 
-      // Verify lesson belongs to class
-      const lesson = await prismaClient.lesson.findFirst({
+      const lesson = await prisma.lesson.findFirst({
         where: {
           id: lessonId,
           classId,
@@ -237,8 +267,7 @@ class QuizController {
         return res.status(404).json({ error: "Lesson not found" });
       }
 
-      // Verify quiz exists and belongs to lesson
-      const existingQuiz = await prismaClient.quiz.findFirst({
+      const existingQuiz = await prisma.quiz.findFirst({
         where: {
           id: quizId,
           lessonId,
@@ -256,23 +285,18 @@ class QuizController {
         return res.status(404).json({ error: "Quiz not found" });
       }
 
-      // Update quiz with question and options in a transaction
-      const updatedQuiz = await prismaClient.$transaction(async (tx) => {
-        // Update quiz title
+      const updatedQuiz = await prisma.$transaction(async (tx) => {
         const quiz = await tx.quiz.update({
           where: { id: quizId },
-          data: { title },
+          data: { title, isActive: Boolean(isActive) },
         });
 
-        // Get the existing question (assuming one question per quiz)
         const existingQuestion = existingQuiz.questions[0];
 
-        // Update question and options
         const updatedQuestion = await tx.question.update({
           where: { id: existingQuestion.id },
           data: {
             text: question,
-            // Delete existing options and create new ones
             options: {
               deleteMany: {},
               create: options.map(
@@ -304,13 +328,15 @@ class QuizController {
   async delete(req: AuthRequest, res: Response) {
     try {
       const { classId, lessonId, quizId } = req.params;
-      const teacherId = req.user?.id;
 
-      // Verify class belongs to teacher
-      const classData = await prismaClient.class.findFirst({
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const classData = await prisma.class.findFirst({
         where: {
           id: classId,
-          teacherId,
+          teacherId: req.user.id,
         },
       });
 
@@ -318,8 +344,7 @@ class QuizController {
         return res.status(404).json({ error: "Class not found" });
       }
 
-      // Verify lesson belongs to class
-      const lesson = await prismaClient.lesson.findFirst({
+      const lesson = await prisma.lesson.findFirst({
         where: {
           id: lessonId,
           classId,
@@ -330,8 +355,7 @@ class QuizController {
         return res.status(404).json({ error: "Lesson not found" });
       }
 
-      // Delete quiz and all related data (questions, options, responses)
-      await prismaClient.quiz.delete({
+      await prisma.quiz.delete({
         where: {
           id: quizId,
           lessonId,
@@ -347,9 +371,37 @@ class QuizController {
 
   async getResponses(req: AuthRequest, res: Response) {
     try {
-      const { quizId } = req.params;
+      const { classId, quizId } = req.params;
 
-      const responses = await prismaClient.response.findMany({
+      if (req.user?.role !== UserRole.TEACHER) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const classData = await prisma.class.findFirst({
+        where: {
+          id: classId,
+          teacherId: req.user.id,
+        },
+      });
+
+      if (!classData) {
+        return res.status(404).json({ error: "Class not found" });
+      }
+
+      const quiz = await prisma.quiz.findFirst({
+        where: {
+          id: quizId,
+          lesson: {
+            classId,
+          },
+        },
+      });
+
+      if (!quiz) {
+        return res.status(404).json({ error: "Quiz not found" });
+      }
+
+      const responses = await prisma.response.findMany({
         where: { quizId },
         include: {
           user: {
@@ -369,6 +421,118 @@ class QuizController {
     } catch (error) {
       console.error("Error fetching quiz responses:", error);
       res.status(500).json({ error: "Failed to fetch quiz responses" });
+    }
+  }
+
+  async submitResponse(req: AuthRequest, res: Response) {
+    try {
+      const { classId, lessonId, quizId } = req.params;
+      const student = req.user;
+      const { answers } = req.body as {
+        answers: { questionId: string; selectedOptionId: string }[];
+      };
+
+      if (!student || student.role !== UserRole.STUDENT) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const classData = await getClassForUser(classId, student);
+
+      if (!classData) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const quiz = await prisma.quiz.findFirst({
+        where: {
+          id: quizId,
+          lessonId,
+          lesson: {
+            classId,
+          },
+        },
+        include: {
+          questions: {
+            include: {
+              options: true,
+            },
+          },
+        },
+      });
+
+      if (!quiz || !quiz.isActive) {
+        return res.status(400).json({ error: "Quiz is not active" });
+      }
+
+      if (quiz.questions.length === 0) {
+        return res.status(400).json({ error: "Quiz has no questions" });
+      }
+
+      const existingResponse = await prisma.response.findFirst({
+        where: {
+          quizId,
+          userId: student.id,
+        },
+      });
+
+      if (existingResponse) {
+        return res.status(400).json({ error: "Quiz already submitted" });
+      }
+
+      if (!Array.isArray(answers) || answers.length === 0) {
+        return res.status(400).json({ error: "Answers are required" });
+      }
+
+      if (answers.length !== quiz.questions.length) {
+        return res.status(400).json({ error: "All questions must be answered" });
+      }
+
+      const questionMap = new Map(
+        quiz.questions.map((question) => [question.id, question]),
+      );
+
+      let correctCount = 0;
+
+      for (const answer of answers) {
+        const question = questionMap.get(answer.questionId);
+        if (!question) {
+          return res.status(400).json({ error: "Invalid question" });
+        }
+
+        const option = question.options.find(
+          (opt) => opt.id === answer.selectedOptionId,
+        );
+        if (!option) {
+          return res.status(400).json({ error: "Invalid option" });
+        }
+
+        if (option.isCorrect) {
+          correctCount += 1;
+        }
+      }
+
+      const score = correctCount / quiz.questions.length;
+
+      const responseRecord = await prisma.response.create({
+        data: {
+          quizId,
+          userId: student.id,
+          score,
+          answers: {
+            create: answers.map((answer) => ({
+              questionId: answer.questionId,
+              selectedOptionId: answer.selectedOptionId,
+            })),
+          },
+        },
+        include: {
+          answers: true,
+        },
+      });
+
+      res.status(201).json(responseRecord);
+    } catch (error) {
+      console.error("Error submitting quiz response:", error);
+      res.status(500).json({ error: "Failed to submit response" });
     }
   }
 }

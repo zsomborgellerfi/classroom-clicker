@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Container,
-  Divider,
   Drawer,
   List,
   ListItem,
@@ -18,6 +17,7 @@ import {
 } from "@mui/material";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import { LanguageSelector } from "../components/common/LanguageSelector";
 import { useTranslation } from "../hooks/useTranslation";
 import { useAppDispatch } from "../store/hooks";
 import { logout } from "../store/slices/auth/slice";
@@ -54,15 +54,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Toolbar sx={{ justifyContent: "space-between", gap: 2 }}>
           <Typography variant="h6">{t("admin.dashboard.title")}</Typography>
-          <Button
-            color="inherit"
-            onClick={handleLogout}
-            startIcon={<LogoutIcon />}
-          >
-            {t("auth.logout")}
-          </Button>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <LanguageSelector />
+            <Button
+              color="inherit"
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+            >
+              {t("auth.logout")}
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
       <Drawer

@@ -1,6 +1,7 @@
-import ClassIcon from "@mui/icons-material/Class";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LogoutIcon from "@mui/icons-material/Logout";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import {
   AppBar,
   Box,
@@ -26,15 +27,15 @@ import { logout } from "../store/slices/auth/slice";
 const DRAWER_WIDTH = 240;
 
 const menuItems = [
-  { path: "/teacher", icon: <DashboardIcon />, labelKey: "dashboard.title" },
-  { path: "/teacher/classes", icon: <ClassIcon />, labelKey: "classes.title" },
+  { path: "/student", icon: <DashboardIcon />, labelKey: "classes.title" },
+  { path: "/student/progress", icon: <ShowChartIcon />, labelKey: "progress.title" },
 ];
 
-interface TeacherLayoutProps {
+interface StudentLayoutProps {
   children: ReactNode;
 }
 
-export function TeacherLayout({ children }: TeacherLayoutProps) {
+export function StudentLayout({ children }: StudentLayoutProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -46,10 +47,13 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
   };
 
   const isSelected = (path: string) => {
-    if (path === "/teacher") {
-      return location.pathname === "/teacher";
+    if (path === "/student") {
+      return (
+        location.pathname === "/student" ||
+        location.pathname.startsWith("/student/classes")
+      );
     }
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    return location.pathname === path;
   };
 
   return (
@@ -63,7 +67,10 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between", gap: 2 }}>
-          <Typography variant="h6">{t("teacher.dashboard.title")}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <MenuBookIcon />
+            <Typography variant="h6">{t("student.dashboard.title")}</Typography>
+          </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <LanguageSelector />
             <Button
@@ -87,17 +94,17 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
           },
         }}
       >
-        <Toolbar /> {/* Spacer for AppBar */}
+        <Toolbar />
         <Box sx={{ overflow: "auto" }}>
           <List>
             {menuItems.map((item) => (
               <ListItem key={item.path} disablePadding>
-                  <ListItemButton
-                    selected={isSelected(item.path)}
-                    onClick={() => navigate(item.path)}
-                  >
+                <ListItemButton
+                  selected={isSelected(item.path)}
+                  onClick={() => navigate(item.path)}
+                >
                   <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={t(`teacher.${item.labelKey}`)} />
+                  <ListItemText primary={t(`student.${item.labelKey}`)} />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -105,7 +112,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
         </Box>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar /> {/* Spacer for AppBar */}
+        <Toolbar />
         <Container maxWidth="lg">{children}</Container>
       </Box>
     </Box>
