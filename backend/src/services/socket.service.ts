@@ -10,6 +10,9 @@ type InterServerEvents = Record<string, never>;
 export type QuizActivationPayload = {
   quizId: string;
   quizTitle: string;
+  activatedAt?: string | null;
+  availableUntil?: string | null;
+  timeLimitSeconds?: number | null;
   lessonId: string;
   lessonTitle: string;
   classId: string;
@@ -89,6 +92,10 @@ class SocketService {
       if (user?.role === UserRole.STUDENT) {
         socket.join(this.getStudentRoom(user.id));
       }
+
+      if (user?.role === UserRole.TEACHER) {
+        socket.join(this.getTeacherRoom(user.id));
+      }
     });
   }
 
@@ -102,8 +109,20 @@ class SocketService {
     });
   }
 
+  emitQuizResponsesUpdated(teacherId: string, payload: { quizId: string; lessonId: string; classId: string }) {
+    if (!this.io) {
+      return;
+    }
+
+    this.io.to(this.getTeacherRoom(teacherId)).emit("quiz:responses-updated", payload);
+  }
+
   private getStudentRoom(studentId: string) {
     return `student:${studentId}`;
+  }
+
+  private getTeacherRoom(teacherId: string) {
+    return `teacher:${teacherId}`;
   }
 }
 

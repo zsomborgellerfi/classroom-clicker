@@ -28,6 +28,8 @@ export const ENDPOINTS = {
     LOGIN: () => `/auth/login`,
     REGISTER: () => `/auth/register`,
     ME: () => `/auth/me`,
+    REQUEST_RESET: () => `/auth/password/forgot`,
+    RESET_PASSWORD: () => `/auth/password/reset`,
   },
   CLASS: {
     LIST: () => `/teacher/classes`,

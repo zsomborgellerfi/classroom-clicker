@@ -49,6 +49,9 @@ const persistDismissedIds = (ids: Set<string>) => {
 type QuizActivationPayload = {
   quizId: string;
   quizTitle: string;
+  activatedAt?: string | null;
+  availableUntil?: string | null;
+  timeLimitSeconds?: number | null;
   lessonId: string;
   lessonTitle: string;
   classId: string;

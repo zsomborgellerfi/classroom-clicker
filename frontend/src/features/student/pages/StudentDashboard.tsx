@@ -124,6 +124,15 @@ export default function StudentDashboard() {
                                 {t("student.dashboard.activeQuizzes.opens")}:{" "}
                                 {formatDateTime(quiz.opensAt)}
                               </Typography>
+                              {quiz.closesAt && (
+                                <>
+                                  <br />
+                                  <Typography component="span" variant="caption">
+                                    {t("student.dashboard.activeQuizzes.closes")}:{" "}
+                                    {formatDateTime(quiz.closesAt)}
+                                  </Typography>
+                                </>
+                              )}
                             </>
                           }
                         />

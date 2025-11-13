@@ -72,6 +72,7 @@ export function QuizTable({
             <TableCell align="center">
               {t("teacher.quizzes.table.responses")}
             </TableCell>
+            <TableCell>{t("teacher.quizzes.table.rules")}</TableCell>
             <TableCell>{t("teacher.quizzes.table.createdAt")}</TableCell>
             <TableCell align="right">
               {t("teacher.quizzes.table.actions")}
@@ -98,6 +99,29 @@ export function QuizTable({
               </TableCell>
               <TableCell align="center">
                 {quiz._count?.responses ?? 0}
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2">
+                  {quiz.attemptLimit
+                    ? t("teacher.quizzes.table.attemptsLabel", {
+                        count: quiz.attemptLimit,
+                      })
+                    : t("teacher.quizzes.table.attemptsUnlimited")}
+                </Typography>
+                <Typography variant="body2">
+                  {quiz.timeLimitSeconds
+                    ? t("teacher.quizzes.table.timeLimitValue", {
+                        minutes: Math.round((quiz.timeLimitSeconds ?? 0) / 60),
+                      })
+                    : t("teacher.quizzes.table.timeLimitNone")}
+                </Typography>
+                <Typography variant="body2">
+                  {quiz.availableUntil
+                    ? t("teacher.quizzes.table.deadlineValue", {
+                        value: new Date(quiz.availableUntil).toLocaleString(),
+                      })
+                    : t("teacher.quizzes.table.deadlineNone")}
+                </Typography>
               </TableCell>
               <TableCell>
                 {new Date(quiz.createdAt).toLocaleDateString()}

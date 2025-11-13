@@ -1,6 +1,7 @@
 import {
   Box,
   Breadcrumbs,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -16,8 +17,8 @@ import {
   TableSortLabel,
   Typography,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -26,10 +27,15 @@ import { Quiz, StudentResponse } from "@shared/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import { TeacherLayout } from "@/layouts/TeacherLayout";
 import api, { ENDPOINTS } from "@/lib/api";
+import { QuizFormDialog } from "@/features/teacher/components/QuizFormDialog";
+import { useAppSelector } from "@/store/hooks";
+import { connectSocket } from "@/lib/socket";
 
 export function QuizDetails() {
   const { classId, lessonId, quizId } = useParams();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const { token } = useAppSelector((state) => state.auth);
 
   const { data: quiz } = useQuery<Quiz>({
     queryKey: ["quiz", quizId],
@@ -50,12 +56,58 @@ export function QuizDetails() {
       return response.data;
     },
   });
+  const { data: classInfo } = useQuery<{
+    id: string;
+    students: { id: string }[];
+  }>({
+    queryKey: ["class", classId],
+    queryFn: async () => {
+      const response = await api.get<{ id: string; students: { id: string }[] }>(
+        ENDPOINTS.CLASS.GET(classId!),
+      );
+      return response.data;
+    },
+    enabled: Boolean(classId),
+  });
 
   // Add sorting state
   const [orderBy, setOrderBy] = useState<"name" | "score" | "submittedAt">(
     "submittedAt",
   );
   const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  useEffect(() => {
+    if (!token || !quizId || !lessonId || !classId) {
+      return;
+    }
+
+    const socket = connectSocket(token);
+    if (!socket) {
+      return;
+    }
+
+    const handleResponsesUpdated = (payload: {
+      quizId: string;
+      lessonId: string;
+      classId: string;
+    }) => {
+      if (
+        payload.quizId === quizId &&
+        payload.lessonId === lessonId &&
+        payload.classId === classId
+      ) {
+        queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
+        queryClient.invalidateQueries({ queryKey: ["quiz-responses", quizId] });
+        queryClient.invalidateQueries({ queryKey: ["class", classId] });
+      }
+    };
+
+    socket.on("quiz:responses-updated", handleResponsesUpdated);
+
+    return () => {
+      socket.off("quiz:responses-updated", handleResponsesUpdated);
+    };
+  }, [token, quizId, lessonId, classId, queryClient]);
 
   // Sorting handler
   const handleSort = (property: typeof orderBy) => {
@@ -92,6 +144,64 @@ export function QuizDetails() {
 
   // Calculate statistics
   const totalResponses = responses?.length || 0;
+  const eligibleStudents = classInfo?.students?.length ?? 0;
+  const submittedStudentIds = new Set(
+    (responses ?? []).map((response) => response.user.id),
+  );
+  const submittedCount = submittedStudentIds.size;
+  const remainingStudents = Math.max(eligibleStudents - submittedCount, 0);
+
+  const metadata: { label: string; color?: "default" | "success" }[] = [
+    {
+      label: quiz.isActive
+        ? t("teacher.quizzes.table.active")
+        : t("teacher.quizzes.table.inactive"),
+      color: quiz.isActive ? "success" : "default",
+    },
+    {
+      label: (() => {
+        if (!quiz.isActive && (responses?.length ?? 0) === 0) {
+          return t("teacher.quizzes.details.statusIdle");
+        }
+        if (quiz.isActive && remainingStudents > 0) {
+          return t("teacher.quizzes.details.statusOngoing");
+        }
+        return t("teacher.quizzes.details.statusFinished");
+      })(),
+    },
+    {
+      label: quiz.attemptLimit
+        ? t("teacher.quizzes.details.attemptLimit", {
+            count: quiz.attemptLimit,
+          })
+        : t("teacher.quizzes.details.attemptLimit", { count: 1 }),
+    },
+    {
+      label: quiz.timeLimitSeconds
+        ? t("teacher.quizzes.details.timeLimit", {
+            minutes: Math.round(quiz.timeLimitSeconds / 60),
+          })
+        : t("teacher.quizzes.details.timeLimitNone"),
+    },
+    {
+      label: quiz.availableUntil
+        ? t("teacher.quizzes.details.deadlineValue", {
+            value: new Date(quiz.availableUntil).toLocaleString(),
+          })
+        : t("teacher.quizzes.details.deadlineNone"),
+    },
+    {
+      label: t("teacher.quizzes.details.eligibleStudents", {
+        count: eligibleStudents,
+      }),
+    },
+    {
+      label: t("teacher.quizzes.details.remainingStudents", {
+        count: remainingStudents,
+      }),
+    },
+  ];
+
   const questionStats = quiz.questions.map((question) => {
     const optionStats = question.options.map((option) => {
       const selectedCount =
@@ -140,11 +250,35 @@ export function QuizDetails() {
         <Typography color="text.primary">{quiz.title}</Typography>
       </Breadcrumbs>
       <Box>
-        {/* Add Breadcrumbs */}
-
-        <Typography variant="h4" gutterBottom>
-          {t("teacher.quizzes.title")}
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 2,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+            {t("teacher.quizzes.title")}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => setIsEditDialogOpen(true)}
+          >
+            {t("teacher.quizzes.actions.edit")}
+          </Button>
+        </Box>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
+          {metadata.map(({ label, color }) => (
+            <Chip
+              key={label}
+              label={label}
+              size="small"
+              color={color ?? "default"}
+            />
+          ))}
+        </Box>
 
         {/* Overall Statistics */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -279,6 +413,14 @@ export function QuizDetails() {
           </Table>
         </TableContainer>
       </Box>
+
+      <QuizFormDialog
+        classId={classId!}
+        lessonId={lessonId!}
+        quiz={quiz}
+        open={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+      />
     </TeacherLayout>
   );
 }

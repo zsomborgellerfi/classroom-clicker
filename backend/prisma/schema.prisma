@@ -15,6 +15,8 @@ model User {
   firstName String
   lastName  String
   role      Role     @default(STUDENT)
+  passwordResetToken String? @unique
+  passwordResetExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   classes   Class[]  // for teachers
@@ -65,6 +67,10 @@ model Quiz {
   title     String
   isActive  Boolean    @default(false)
   lessonId  String
+  timeLimitSeconds Int?
+  availableUntil DateTime?
+  attemptLimit   Int?      @default(1)
+  activatedAt    DateTime?
   lesson    Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   questions Question[]
   responses Response[]
@@ -75,12 +81,16 @@ model Quiz {
 }
 
 model Question {
-  id      String        @id @default(uuid())
-  text    String
-  quizId  String
-  quiz    Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  options QuizOption[]
-  answers QuizAnswer[]
+  id          String        @id @default(uuid())
+  text        String
+  explanation String?
+  order       Int           @default(0)
+  quizId      String
+  quiz        Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options     QuizOption[]
+  answers     QuizAnswer[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([quizId])
 }
@@ -104,6 +114,7 @@ model Response {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   answers     QuizAnswer[]
   score       Float
+  attemptNumber Int        @default(1)
   submittedAt DateTime     @default(now())
 
   @@index([quizId])

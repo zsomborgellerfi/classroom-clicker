@@ -1,15 +1,23 @@
-import type { User } from './user';
-import type { Quiz } from './quiz';
-import type { Question } from './question';
+import type { QuizOption } from "./quizOption";
+import type { Question } from "./question";
+import type { User } from "./user";
 
-export interface Response {
+export interface QuizResponseAnswer {
   id: string;
-  selectedOption: number;
-  userId: string;
-  user: User;
-  quizId: string;
-  quiz: Quiz;
   questionId: string;
-  question: Question;
-  createdAt: Date;
-} 
+  selectedOptionId: string;
+  question?: Question;
+  selectedOption?: QuizOption;
+  isCorrect?: boolean;
+}
+
+export interface StudentResponse {
+  id: string;
+  quizId: string;
+  userId: string;
+  user: Pick<User, "id" | "firstName" | "lastName">;
+  answers: QuizResponseAnswer[];
+  score: number;
+  attemptNumber: number;
+  submittedAt: string;
+}

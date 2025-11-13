@@ -1,10 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoadingButton } from "@mui/lab";
-import { Checkbox, FormControlLabel, Stack, TextField } from "@mui/material";
+import { Checkbox, FormControlLabel, Link, Stack, TextField } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { useTranslation } from "@/hooks/useTranslation";
@@ -94,6 +94,14 @@ export function LoginForm() {
           control={<Checkbox {...register("rememberMe")} color="primary" />}
           label={t("auth.rememberMe")}
         />
+        <Link
+          component={RouterLink}
+          to="/forgot-password"
+          variant="body2"
+          sx={{ alignSelf: "flex-start" }}
+        >
+          {t("auth.forgotPassword")}
+        </Link>
         <LoadingButton
           type="submit"
           loading={loading}

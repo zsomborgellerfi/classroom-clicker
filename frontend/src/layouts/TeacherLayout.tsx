@@ -67,8 +67,10 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between", gap: 2 }}>
-          <MenuBookIcon />
-          <Typography variant="h6">{t("teacher.dashboard.title")}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <MenuBookIcon />
+            <Typography variant="h6">{t("teacher.dashboard.title")}</Typography>
+          </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             {user?.firstName && user?.lastName && (
               <Typography variant="body2" sx={{ fontWeight: 500 }}>

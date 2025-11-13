@@ -726,11 +726,31 @@ class ClassController {
           }),
         ]);
 
+      const computeDeadline = (quiz: {
+        availableUntil: Date | null;
+        timeLimitSeconds: number | null;
+        activatedAt: Date | null;
+      }) => {
+        const candidates: number[] = [];
+        if (quiz.availableUntil) {
+          candidates.push(quiz.availableUntil.getTime());
+        }
+        if (quiz.timeLimitSeconds && quiz.activatedAt) {
+          candidates.push(
+            quiz.activatedAt.getTime() + quiz.timeLimitSeconds * 1000,
+          );
+        }
+        if (!candidates.length) {
+          return null;
+        }
+        return new Date(Math.min(...candidates));
+      };
+
       const mapQuizSummary = (quiz: typeof activeQuizzes[number]) => ({
         id: quiz.id,
         title: quiz.title,
-        opensAt: quiz.createdAt,
-        closesAt: null,
+        opensAt: quiz.activatedAt ?? quiz.createdAt,
+        closesAt: computeDeadline(quiz),
         lesson: quiz.lesson,
       });
 

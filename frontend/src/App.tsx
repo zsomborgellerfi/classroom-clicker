@@ -10,6 +10,8 @@ import { NotFound } from "@/shared/ui/NotFound";
 import { RoleRoute } from "@/shared/ui/RoleRoute";
 import { UserRole } from "@/enums/userRole";
 import Login from "@/features/auth/pages/Login";
+import ForgotPassword from "@/features/auth/pages/ForgotPassword";
+import ResetPassword from "@/features/auth/pages/ResetPassword";
 import { AuthInitializer } from "@/features/auth/components/AuthInitializer";
 import TeacherDashboard from "@/features/teacher/pages/TeacherDashboard";
 import AdminDashboard from "@/features/admin/pages/AdminDashboard";
@@ -40,6 +42,8 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Teacher routes */}
             <Route element={<RoleRoute roles={[UserRole.TEACHER]} />}>
