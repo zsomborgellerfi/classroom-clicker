@@ -78,10 +78,25 @@ Run everything (backend, frontend, Postgres, pgAdmin, nginx proxy) using the hel
 
 ## Testing & Linting
 
+- **Full stack tests**: `./scripts/run-tests.sh` (runs backend Jest suite then frontend Vitest suite).
+- **Backend unit tests (Jest + ts-jest)**: `cd backend && npm test` (watch) or `npm test -- --runInBand` for CI-friendly serial runs.
+- **Frontend unit/component tests (Vitest + React Testing Library)**: `cd frontend && npm run test` (watch) or `npm run test:run` for a single run with coverage.
 - **Frontend TypeScript check**: `cd frontend && npx tsc --noEmit`
 - **Backend TypeScript check**: `cd backend && npx tsc --noEmit`
 
-ESLint is not configured yet in this repo; use the TypeScript compiler to ensure type safety.
+### Backend testing details
+- Jest picks up any `*.test.ts` under `backend/src/**`; keep unit tests close to the modules they cover (e.g., `middleware/auth.test.ts`).
+- `ts-jest` compiles tests against `tsconfig.test.json`, and `src/test/setup.ts` seeds required env vars (JWT secrets, client URL). Override via `.env` if you need different values.
+- To run a single spec: `cd backend && npm test -- src/middleware/auth.test.ts`.
+- Integration tests that hit Express routes should import the shared `app` and use Supertest; keep Prisma usage mocked unless a SQLite test harness is explicitly added.
+
+### Frontend testing details
+- Vitest looks for files named `*.test.ts(x)` in `frontend/src/**`; colocate them under `__tests__` folders to mirror component structure.
+- The test environment is jsdom with React Testing Library helpers pre-configured in `src/test/setup.ts` (jest-dom matchers, cleanup, `matchMedia` polyfill).
+- Watching mode (`npm run test`) keeps Vitest hot; use `npm run test:run -- --runTestsByPath src/shared/ui/__tests__/RoleRoute.test.tsx` for targeted CI-friendly runs.
+- RTL guidance: mock translation/state hooks at the module level (`vi.mock("@/hooks/useTranslation", ...)`) and assert UI/dispatch side-effects rather than implementation details.
+
+ESLint is not configured yet in this repo; use the TypeScript compiler and the new test suites to keep regressions out.
 
 ## Password Reset Flow (Dev Notes)
 

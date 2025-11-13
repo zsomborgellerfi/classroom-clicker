@@ -34,7 +34,7 @@
 - **Password reset**: Tokens are issued via `/auth/password/forgot` (stored on the user record) and consumed via `/auth/password/reset`. In non-prod environments the token is logged/returned for dev convenience; production must rely on email delivery. Frontend pages live under `src/features/auth/pages`.
 - **Realtime**: Student-facing sockets listen for `quiz:activated`; teacher sockets listen for `quiz:responses-updated`. Any payload tweak must be reflected in both backend emitters and frontend listeners plus React Query invalidations.
 - **Componentization rule**: Pages under `src/features/*/pages` stay thin (data fetching + layout only). Move UI/logic into `src/features/*/components`, `src/features/*/hooks`, or `src/shared/ui` so responsibilities are testable and reusable.
-- **Testing expectations**: Backend uses Jest (`backend/package.json`), though suites are thin—QA agent should backfill; frontend relies on manual/React Query testing for now.
+- **Testing expectations**: Backend uses Jest (`cd backend && npm test`) with specs colocated beside the source; frontend ships Vitest + React Testing Library (`cd frontend && npm run test` for watch, `npm run test:run` for coverage). When a change spans both apps, run `./scripts/run-tests.sh` so regressions are caught before hand-off.
 - **Observability**: `/health` endpoint (`backend/src/app.ts`) is the lightweight liveness probe; additional metrics/logging are to be added by Platform/QA agents when needed.
 
 ## Agent Roster
@@ -78,6 +78,7 @@
 - **Quality Gates**:
   - Every feature page delegates logic to components/hooks; avoid “God pages.”
   - Lint + format clean, strict TypeScript, accessible components, loading/error states for all queries/mutations, toast notifications for outcomes.
+  - Add/maintain Vitest + React Testing Library coverage for shared UI, hooks, and critical flows; keep `npm run test:run` free of flakiness.
 
 ### 4. Shared Contracts Agent
 - **Mission**: Synchronize DTOs, enums, and validation schemas across `shared/`, backend, and frontend.
@@ -92,6 +93,7 @@
 - **Mission**: Validate end-to-end behavior, enforce release readiness, and watch observability hooks.
 - **Key Responsibilities**:
   - Expand Jest coverage in backend, add Playwright/Cypress (future) for critical flows, and ensure CI runs lint + tests + builds.
+  - Keep `./scripts/run-tests.sh` green before merges; gate releases on both Jest and Vitest suites plus `tsc --noEmit`.
   - Define manual regression checklists (auth, teacher workflows, admin user edits) until automation exists.
   - Verify password reset flows (request + reset) and socket-driven UI updates for both teacher and student dashboards.
   - Monitor `/health` and add deeper telemetry/logging strategies (request IDs, structured logs).
