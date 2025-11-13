@@ -24,9 +24,13 @@ Classroom Clicker is a monorepo that powers a web-based clicker experience for t
 
 ### Environment
 
-1. Copy `.env.example` to `.env` in the repository root and update values as needed.
-2. Ensure `DATABASE_URL` points to a running PostgreSQL instance (local Docker or remote).
-3. Configure SMTP creds if you want password reset emails to be sent. For local testing we recommend Mailhog/Mailtrap; leaving the fields blank will cause the backend to skip sending emails and simply log a token in the console.
+You need two dedicated `.env` files plus an optional root override:
+
+1. **Backend (`backend/.env`)** – Source of truth for Prisma + Express (copy from `backend/.env.example`). `docker-compose` automatically loads this file via `env_file`, so you only need to maintain secrets such as `JWT_SECRET` once. Use local-friendly values (DB host `localhost`, etc.); Compose overrides `DATABASE_URL` internally to point at the `db` service.
+2. **Frontend (`frontend/.env`)** – Vite-only vars prefixed with `VITE_` (copy from `frontend/.env.example`). Typically just `VITE_API_URL`.
+3. **Root (`.env`, optional)** – Only needed if you want to define additional Docker Compose substitutions or script-specific overrides. You can leave it absent for most workflows now that Compose reads `backend/.env`.
+
+For SMTP you can point to Mailhog/Mailtrap during development. Setting `DISABLE_EMAIL=true` in `backend/.env` skips delivery and simply logs the token; `EXPOSE_RESET_TOKEN=true` returns the token to the API caller for convenience.
 
 ### Install Dependencies
 

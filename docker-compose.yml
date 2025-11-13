@@ -5,12 +5,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
+    env_file:
+      - ./backend/.env
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/classroom_clicker?schema=public
-      - JWT_SECRET=${JWT_SECRET}
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       db:
