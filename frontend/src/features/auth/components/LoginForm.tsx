@@ -1,6 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoadingButton } from "@mui/lab";
-import { Checkbox, FormControlLabel, Link, Stack, TextField } from "@mui/material";
+import {
+  Checkbox,
+  FormControlLabel,
+  Link,
+  Stack,
+  TextField,
+} from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -20,7 +26,7 @@ export function LoginForm() {
 
   const loginSchema = z.object({
     email: z.string().email(t("admin.users.email.invalid")),
-    password: z.string().min(6, t("admin.users.password.min")),
+    password: z.string().min(4, t("admin.users.password.min")),
     rememberMe: z.boolean(),
   });
 

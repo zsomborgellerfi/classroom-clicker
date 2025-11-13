@@ -1,6 +1,5 @@
-import crypto from "crypto";
-
 import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
 import { Request, Response } from "express";
 
 import { UserRole } from "../enums/userRole";
@@ -296,6 +295,110 @@ class ClassController {
     }
   }
 
+  async bulkAddStudents(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { studentIds } = req.body;
+      const teacherId = req.user?.id;
+
+      if (!Array.isArray(studentIds) || studentIds.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "studentIds must be a non-empty array" });
+      }
+
+      const existingClass = await prisma.class.findUnique({
+        where: { id },
+      });
+
+      if (!existingClass) {
+        return res.status(404).json({ error: "Class not found" });
+      }
+
+      if (existingClass.teacherId !== teacherId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      // Verify all students exist and are actually students
+      const students = await prisma.user.findMany({
+        where: {
+          id: { in: studentIds },
+          role: UserRole.STUDENT,
+        },
+        select: { id: true },
+      });
+
+      if (students.length !== studentIds.length) {
+        return res.status(400).json({ error: "Some student IDs are invalid" });
+      }
+
+      const updatedClass = await prisma.class.update({
+        where: { id },
+        data: {
+          students: {
+            connect: studentIds.map((studentId: string) => ({ id: studentId })),
+          },
+        },
+        include: {
+          students: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      res.json(updatedClass);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  async removeStudent(req: AuthRequest, res: Response) {
+    try {
+      const { id, studentId } = req.params;
+      const teacherId = req.user?.id;
+
+      const existingClass = await prisma.class.findUnique({
+        where: { id },
+      });
+
+      if (!existingClass) {
+        return res.status(404).json({ error: "Class not found" });
+      }
+
+      if (existingClass.teacherId !== teacherId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const updatedClass = await prisma.class.update({
+        where: { id },
+        data: {
+          students: {
+            disconnect: { id: studentId },
+          },
+        },
+        include: {
+          students: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      res.json(updatedClass);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
   async getInvites(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
@@ -342,12 +445,13 @@ class ClassController {
       }
 
       const code = await generateUniqueInviteCode();
-      const sanitizedMaxUses = maxUses && maxUses > 0 ? Math.floor(maxUses) : null;
+      const sanitizedMaxUses =
+        maxUses && maxUses > 0 ? Math.floor(maxUses) : null;
       const effectiveExpires =
-        expiresInHours && expiresInHours > 0
-          ? expiresInHours
-          : 48; // default 48 hours
-      const expiresAt = new Date(Date.now() + effectiveExpires * 60 * 60 * 1000);
+        expiresInHours && expiresInHours > 0 ? expiresInHours : 48; // default 48 hours
+      const expiresAt = new Date(
+        Date.now() + effectiveExpires * 60 * 60 * 1000,
+      );
 
       const invite = await prisma.classInvite.create({
         data: {
@@ -371,7 +475,9 @@ class ClassController {
       const { classId, inviteId } = req.params;
       const teacherId = req.user?.id;
 
-      const classData = await prisma.class.findUnique({ where: { id: classId } });
+      const classData = await prisma.class.findUnique({
+        where: { id: classId },
+      });
 
       if (!classData) {
         return res.status(404).json({ error: "Class not found" });
@@ -627,6 +733,114 @@ class ClassController {
     }
   }
 
+  async getStudentDetails(req: AuthRequest, res: Response) {
+    try {
+      const { id, studentId } = req.params;
+      const teacherId = req.user?.id;
+
+      const classData = await prisma.class.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          teacherId: true,
+        },
+      });
+
+      if (!classData) {
+        return res.status(404).json({ error: "Class not found" });
+      }
+
+      if (classData.teacherId !== teacherId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      // Verify student is enrolled in this class
+      const student = await prisma.user.findFirst({
+        where: {
+          id: studentId,
+          role: UserRole.STUDENT,
+          enrolledIn: {
+            some: { id },
+          },
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      });
+
+      if (!student) {
+        return res
+          .status(404)
+          .json({ error: "Student not found or not enrolled" });
+      }
+
+      // Get all quizzes for this class
+      const classQuizzes = await prisma.quiz.findMany({
+        where: {
+          lesson: {
+            classId: id,
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          createdAt: true,
+        },
+      });
+
+      // Get student's responses for quizzes in this class
+      const responses = await prisma.response.findMany({
+        where: {
+          userId: studentId,
+          quiz: {
+            lesson: {
+              classId: id,
+            },
+          },
+        },
+        include: {
+          quiz: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          submittedAt: "desc",
+        },
+        take: 10, // Recent 10 responses
+      });
+
+      // Calculate stats
+      const totalQuizzes = classQuizzes.length;
+      const completedQuizzes = new Set(responses.map((r) => r.quizId)).size;
+      const averageScore =
+        responses.length > 0
+          ? responses.reduce((sum, r) => sum + r.score, 0) / responses.length
+          : 0;
+      const lastActivity =
+        responses.length > 0 ? responses[0].submittedAt : null;
+
+      res.json({
+        student,
+        stats: {
+          totalQuizzes,
+          completedQuizzes,
+          averageScore,
+          lastActivity,
+        },
+        recentResponses: responses,
+      });
+    } catch (error) {
+      console.error("Error fetching student details:", error);
+      res.status(500).json({ error: "Failed to fetch student details" });
+    }
+  }
+
   async getStudentDashboard(req: AuthRequest, res: Response) {
     try {
       const studentId = req.user?.id;
@@ -635,96 +849,101 @@ class ClassController {
         return res.status(403).json({ error: "Unauthorized" });
       }
 
-      const [activeQuizzes, upcomingQuiz, totalQuizzes, completedQuizzes, avgScore] =
-        await Promise.all([
-          prisma.quiz.findMany({
-            where: {
-              isActive: true,
-              lesson: {
+      const [
+        activeQuizzes,
+        upcomingQuiz,
+        totalQuizzes,
+        completedQuizzes,
+        avgScore,
+      ] = await Promise.all([
+        prisma.quiz.findMany({
+          where: {
+            isActive: true,
+            lesson: {
+              class: {
+                students: {
+                  some: {
+                    id: studentId,
+                  },
+                },
+              },
+            },
+          },
+          include: {
+            lesson: {
+              select: {
+                id: true,
+                title: true,
                 class: {
-                  students: {
-                    some: {
-                      id: studentId,
-                    },
+                  select: {
+                    id: true,
+                    name: true,
                   },
                 },
               },
             },
-            include: {
-              lesson: {
-                select: {
-                  id: true,
-                  title: true,
-                  class: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
+          },
+          orderBy: {
+            updatedAt: "desc",
+          },
+          take: 5,
+        }),
+        prisma.quiz.findFirst({
+          where: {
+            isActive: false,
+            lesson: {
+              class: {
+                students: {
+                  some: {
+                    id: studentId,
                   },
                 },
               },
             },
-            orderBy: {
-              updatedAt: "desc",
-            },
-            take: 5,
-          }),
-          prisma.quiz.findFirst({
-            where: {
-              isActive: false,
-              lesson: {
+          },
+          include: {
+            lesson: {
+              select: {
+                id: true,
+                title: true,
                 class: {
-                  students: {
-                    some: {
-                      id: studentId,
-                    },
+                  select: {
+                    id: true,
+                    name: true,
                   },
                 },
               },
             },
-            include: {
-              lesson: {
-                select: {
-                  id: true,
-                  title: true,
-                  class: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
+          },
+          orderBy: { createdAt: "asc" },
+        }),
+        prisma.quiz.count({
+          where: {
+            lesson: {
+              class: {
+                students: {
+                  some: {
+                    id: studentId,
                   },
                 },
               },
             },
-            orderBy: { createdAt: "asc" },
-          }),
-          prisma.quiz.count({
-            where: {
-              lesson: {
-                class: {
-                  students: {
-                    some: {
-                      id: studentId,
-                    },
-                  },
-                },
-              },
-            },
-          }),
-          prisma.response.count({
-            where: {
-              userId: studentId,
-            },
-          }),
-          prisma.response.aggregate({
-            where: {
-              userId: studentId,
-            },
-            _avg: {
-              score: true,
-            },
-          }),
-        ]);
+          },
+        }),
+        prisma.response.count({
+          where: {
+            userId: studentId,
+          },
+        }),
+        prisma.response.aggregate({
+          where: {
+            userId: studentId,
+          },
+          _avg: {
+            score: true,
+          },
+        }),
+      ]);
 
       const computeDeadline = (quiz: {
         availableUntil: Date | null;
@@ -746,7 +965,7 @@ class ClassController {
         return new Date(Math.min(...candidates));
       };
 
-      const mapQuizSummary = (quiz: typeof activeQuizzes[number]) => ({
+      const mapQuizSummary = (quiz: (typeof activeQuizzes)[number]) => ({
         id: quiz.id,
         title: quiz.title,
         opensAt: quiz.activatedAt ?? quiz.createdAt,

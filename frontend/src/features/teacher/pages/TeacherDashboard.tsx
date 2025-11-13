@@ -222,7 +222,7 @@ export default function TeacherDashboard() {
                         secondaryAction={
                           <Chip
                             color="primary"
-                            label={`${t("teacher.dashboard.recentResponses.score")}: ${Math.round(response.score * 100)}%`}
+                            label={`${t("teacher.dashboard.recentResponses.score")}: ${Math.min(Math.round(response.score * 100), 100)}%`}
                             size="small"
                           />
                         }

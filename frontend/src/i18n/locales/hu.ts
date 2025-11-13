@@ -36,7 +36,8 @@ export const hu: Translations = {
   admin: {
     dashboard: {
       title: "Admin vezérlőpult",
-      subtitle: "Kövesd nyomon a platform aktivitását és kezeld a felhasználókat.",
+      subtitle:
+        "Kövesd nyomon a platform aktivitását és kezeld a felhasználókat.",
       insights: {
         users: "Összes felhasználó",
         teachers: "Tanárok",
@@ -210,8 +211,49 @@ export const hu: Translations = {
         empty: "Ehhez a kurzushoz még nem rendeltek diákot.",
         add: "Diák hozzárendelése",
         selectLabel: "Válassz egy diákot",
+        searchLabel: "Diákok keresése",
+        searchPlaceholder: "Keresés név vagy email alapján...",
+        searchResults: "{{count}} diák található",
+        noResults: "Nincs találat",
         success: "A diák hozzárendelése sikerült",
         error: "A diák hozzárendelése nem sikerült",
+        remove: "Diák eltávolítása",
+        removeConfirmTitle: "Diák eltávolítása",
+        removeConfirmMessage:
+          "Biztosan el szeretnéd távolítani {{name}} diákot ebből a kurzusból?",
+        removeSuccess: "A diák eltávolítva a kurzusból",
+        removeError: "A diák eltávolítása nem sikerült",
+        table: {
+          firstName: "Keresztnév",
+          lastName: "Vezetéknév",
+          email: "Email",
+          actions: "Műveletek",
+        },
+        selectMultiple: "Válassz ki több diákot egyszerre",
+        selectAll: "Összes kijelölése",
+        deselectAll: "Kijelölés megszüntetése",
+        assignSelected: "{{count}} diák hozzárendelése",
+        removeSelected: "{{count}} kijelölt eltávolítása",
+        export: "Jelentkezők exportálása",
+        bulkSuccess: "{{count}} diák sikeresen hozzárendelve",
+        bulkError: "A diákok hozzárendelése nem sikerült",
+        bulkRemoveSuccess: "{{count}} diák sikeresen eltávolítva",
+        bulkRemoveError: "A diákok eltávolítása nem sikerült",
+        details: {
+          title: "Diák részletei",
+          email: "Email",
+          completionRate: "Befejezési arány",
+          averageScore: "Átlagos pontszám",
+          lastActivity: "Utolsó aktivitás",
+          quizzes: "kvíz",
+          acrossAllQuizzes: "minden kvízben",
+          recentResponses: "Legutóbbi kvíz válaszok",
+          quiz: "Kvíz",
+          score: "Pontszám",
+          submittedAt: "Beküldve",
+          noResponses: "Még nincsenek kvíz válaszok",
+          error: "A diák részleteinek betöltése nem sikerült",
+        },
       },
       invites: {
         title: "Meghívó linkek",
@@ -235,10 +277,15 @@ export const hu: Translations = {
       },
       progress: {
         title: "Kurzus előrehaladása",
-        subtitle: "Kövesd nyomon a diákok kvízeredményeit ebben a kurzusban.",
+        subtitle:
+          "Tekintsd meg a diákok előrehaladását és kvízbeküldéseit ebben a kurzusban",
         summary: "Diák összesítő",
+        summaryDescription:
+          "Áttekintés minden diák teljesítményéről, beleértve az összes kvízpróbálkozást és átlagos pontszámot ebben a kurzusban.",
         recentSubmissions: "Legutóbbi beküldések",
-        error: "Nem sikerült betölteni az előrehaladást.",
+        recentSubmissionsDescription:
+          "A legfrissebb kvízbeküldések az összes diáktól ebben a kurzusban, beküldési idő szerint rendezve.",
+        error: "Nem sikerült betölteni az előrehaladási adatokat",
         empty: "Még nincs beküldött kvíz ebben a kurzusban.",
         table: {
           student: "Diák",
@@ -286,8 +333,7 @@ export const hu: Translations = {
       },
       delete: {
         title: "Lecke törlése",
-        confirm:
-          "Biztosan törlöd ezt a leckét? A művelet nem visszavonható.",
+        confirm: "Biztosan törlöd ezt a leckét? A művelet nem visszavonható.",
         success: "A lecke törlése sikerült",
         error: "A lecke törlése nem sikerült",
       },
@@ -330,11 +376,15 @@ export const hu: Translations = {
         view: "Kvíz megtekintése",
         edit: "Kvíz szerkesztése",
         delete: "Kvíz törlése",
+        activate: "Aktiválás",
+      },
+      activate: {
+        success: "A kvíz aktiválása sikerült",
+        error: "A kvíz aktiválása nem sikerült",
       },
       delete: {
         title: "Kvíz törlése",
-        confirm:
-          "Biztosan törlöd ezt a kvízt? A művelet nem visszavonható.",
+        confirm: "Biztosan törlöd ezt a kvízt? A művelet nem visszavonható.",
         success: "A kvíz törlése sikerült",
         error: "A kvíz törlése nem sikerült",
       },
@@ -413,6 +463,7 @@ export const hu: Translations = {
       list: {
         title: "Kvízek",
       },
+      export: "Eredmények exportálása",
       isActive: "A kvíz aktív",
       inactiveHint: "A diákok csak aktív kvízt tudnak kitölteni.",
       details: {
@@ -458,7 +509,8 @@ export const hu: Translations = {
     classes: {
       menu: "Kurzusaim",
       title: "Kurzusaim",
-      subtitle: "Tekintsd át az aktuális kurzusaidat és a megnyitható leckéket.",
+      subtitle:
+        "Tekintsd át az aktuális kurzusaidat és a megnyitható leckéket.",
       empty: "Még nem vagy beiratkozva egyetlen kurzusba sem.",
       error: "Nem sikerült betölteni a kurzusokat. Próbáld újra.",
       retry: "Újra",
@@ -472,7 +524,8 @@ export const hu: Translations = {
       },
       join: {
         title: "Csatlakozás kóddal",
-        subtitle: "Add meg a tanárod által küldött meghívó kódot a csatlakozáshoz.",
+        subtitle:
+          "Add meg a tanárod által küldött meghívó kódot a csatlakozáshoz.",
         placeholder: "Meghívó kód",
         button: "Csatlakozás",
         submitting: "Csatlakozás...",
@@ -533,7 +586,8 @@ export const hu: Translations = {
     notifications: {
       quizActivated: {
         title: "Új aktív kvíz",
-        message: "{{className}} · {{lessonTitle}} kurzuson most elindult egy új kvíz.",
+        message:
+          "{{className}} · {{lessonTitle}} kurzuson most elindult egy új kvíz.",
         cta: "Ugrás a kvízre",
         dismiss: "Később",
       },
@@ -562,6 +616,13 @@ export const hu: Translations = {
       en: "Angol",
       hu: "Magyar",
     },
+    theme: {
+      switch: "Téma váltása",
+      light: "Világos",
+      dark: "Sötét",
+      system: "Rendszer",
+    },
+    back: "Vissza",
     notFound: {
       title: "Az oldal nem található",
       message: "A keresett oldal nem létezik vagy áthelyezték.",

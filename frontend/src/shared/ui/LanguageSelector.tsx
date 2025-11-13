@@ -30,8 +30,35 @@ export function LanguageSelector() {
     localStorage.setItem("i18nextLng", nextLanguage);
   };
 
+  // Check if we're inside an AppBar (typically has primary color)
+  const isInAppBar = true; // LanguageSelector is always used in AppBar context
+
   return (
-    <FormControl size="small" variant="outlined" sx={{ minWidth: 150 }}>
+    <FormControl 
+      size="small" 
+      variant="outlined" 
+      sx={{ 
+        minWidth: 150,
+        "& .MuiOutlinedInput-root": {
+          color: isInAppBar ? "inherit" : undefined,
+          "& fieldset": {
+            borderColor: isInAppBar ? "rgba(255, 255, 255, 0.23)" : undefined,
+          },
+          "&:hover fieldset": {
+            borderColor: isInAppBar ? "rgba(255, 255, 255, 0.5)" : undefined,
+          },
+          "&.Mui-focused fieldset": {
+            borderColor: isInAppBar ? "rgba(255, 255, 255, 0.5)" : undefined,
+          },
+        },
+        "& .MuiInputLabel-root": {
+          color: isInAppBar ? "rgba(255, 255, 255, 0.7)" : undefined,
+          "&.Mui-focused": {
+            color: isInAppBar ? "rgba(255, 255, 255, 0.7)" : undefined,
+          },
+        },
+      }}
+    >
       <InputLabel id="language-selector-label">
         {t("common.language")}
       </InputLabel>
@@ -41,10 +68,19 @@ export function LanguageSelector() {
         value={currentLanguage}
         label={t("common.language")}
         onChange={handleChange}
+        sx={{
+          color: isInAppBar ? "inherit" : undefined,
+          "& .MuiSvgIcon-root": {
+            color: isInAppBar ? "inherit" : undefined,
+          },
+        }}
         renderValue={(value) => (
           <Stack direction="row" spacing={1} alignItems="center">
-            <TranslateIcon fontSize="small" />
-            <Typography variant="body2">
+            <TranslateIcon fontSize="small" sx={{ color: isInAppBar ? "inherit" : undefined }} />
+            <Typography 
+              variant="body2"
+              sx={{ color: isInAppBar ? "inherit" : undefined }}
+            >
               {t(
                 LANGUAGES.find((lang) => lang.code === value)?.labelKey ??
                   "common.languages.en",

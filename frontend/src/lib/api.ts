@@ -38,6 +38,12 @@ export const ENDPOINTS = {
     UPDATE: (classId: string) => `/teacher/classes/${classId}`,
     DELETE: (classId: string) => `/teacher/classes/${classId}`,
     ASSIGN_STUDENT: (classId: string) => `/teacher/classes/${classId}/students`,
+    BULK_ASSIGN_STUDENTS: (classId: string) =>
+      `/teacher/classes/${classId}/students/bulk`,
+    GET_STUDENT_DETAILS: (classId: string, studentId: string) =>
+      `/teacher/classes/${classId}/students/${studentId}`,
+    REMOVE_STUDENT: (classId: string, studentId: string) =>
+      `/teacher/classes/${classId}/students/${studentId}`,
     INVITES: {
       LIST: (classId: string) => `/teacher/classes/${classId}/invites`,
       CREATE: (classId: string) => `/teacher/classes/${classId}/invites`,

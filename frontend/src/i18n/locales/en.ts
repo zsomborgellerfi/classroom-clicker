@@ -24,7 +24,8 @@ export const en = {
     resetRequestSent:
       "If an account exists for that email, password reset instructions have been sent.",
     resetSuccess: "Password reset successfully. You can sign in now.",
-    resetRequestFailed: "Unable to start the password reset process. Please try again.",
+    resetRequestFailed:
+      "Unable to start the password reset process. Please try again.",
     resetFailed: "Unable to reset the password. Please try again.",
     backToLogin: "Back to login",
     haveToken: "Already have a reset token?",
@@ -208,8 +209,49 @@ export const en = {
         empty: "No students have been assigned to this class yet.",
         add: "Assign Student",
         selectLabel: "Select a student",
+        searchLabel: "Search students",
+        searchPlaceholder: "Search by name or email...",
+        searchResults: "Found {{count}} student(s)",
+        noResults: "No students found",
         success: "Student assigned to class",
         error: "Failed to assign student",
+        remove: "Remove student",
+        removeConfirmTitle: "Remove Student",
+        removeConfirmMessage:
+          "Are you sure you want to remove {{name}} from this class?",
+        removeSuccess: "Student removed from class",
+        removeError: "Failed to remove student",
+        table: {
+          firstName: "First Name",
+          lastName: "Last Name",
+          email: "Email",
+          actions: "Actions",
+        },
+        selectMultiple: "Select multiple students to assign at once",
+        selectAll: "Select All",
+        deselectAll: "Deselect All",
+        assignSelected: "Assign {{count}} Student(s)",
+        removeSelected: "Remove {{count}} Selected",
+        export: "Export Roster",
+        bulkSuccess: "{{count}} student(s) assigned successfully",
+        bulkError: "Failed to assign students",
+        bulkRemoveSuccess: "{{count}} student(s) removed successfully",
+        bulkRemoveError: "Failed to remove students",
+        details: {
+          title: "Student Details",
+          email: "Email",
+          completionRate: "Completion Rate",
+          averageScore: "Average Score",
+          lastActivity: "Last Activity",
+          quizzes: "quizzes",
+          acrossAllQuizzes: "across all quizzes",
+          recentResponses: "Recent Quiz Responses",
+          quiz: "Quiz",
+          score: "Score",
+          submittedAt: "Submitted",
+          noResponses: "No quiz responses yet",
+          error: "Failed to load student details",
+        },
       },
       invites: {
         title: "Invite Links",
@@ -233,17 +275,21 @@ export const en = {
       },
       progress: {
         title: "Class Progress",
-        subtitle: "Monitor student quiz performance for this class.",
+        subtitle: "View student progress and quiz submissions for this class",
         summary: "Student Summary",
+        summaryDescription:
+          "Overview of each student's performance, including total quiz attempts and average score across all quizzes in this class.",
         recentSubmissions: "Recent Submissions",
-        error: "Unable to load class progress.",
-        empty: "No quiz submissions yet.",
+        recentSubmissionsDescription:
+          "The most recent quiz submissions from all students in this class, ordered by submission time.",
+        error: "Failed to load class progress data",
+        empty: "No quiz submissions found for this class yet.",
         table: {
           student: "Student",
           email: "Email",
           attempts: "Attempts",
           averageScore: "Average Score",
-          lastSubmitted: "Last Submission",
+          lastSubmitted: "Last Submitted",
           quiz: "Quiz",
           score: "Score",
           submittedAt: "Submitted At",
@@ -328,6 +374,11 @@ export const en = {
         view: "View Quiz",
         edit: "Edit Quiz",
         delete: "Delete Quiz",
+        activate: "Activate",
+      },
+      activate: {
+        success: "Quiz activated successfully",
+        error: "Failed to activate quiz",
       },
       delete: {
         title: "Delete Quiz",
@@ -411,6 +462,7 @@ export const en = {
       list: {
         title: "Quizzes",
       },
+      export: "Export Results",
       isActive: "Quiz is active",
       inactiveHint: "Students can only answer when the quiz is active.",
       details: {
@@ -431,7 +483,8 @@ export const en = {
     dashboard: {
       title: "Student Dashboard",
       menu: "Dashboard",
-      subtitle: "See what needs your attention and keep up with upcoming quizzes.",
+      subtitle:
+        "See what needs your attention and keep up with upcoming quizzes.",
       welcome: "Here are your enrolled classes and lessons.",
       stats: {
         totalQuizzes: "Assigned Quizzes",
@@ -530,7 +583,8 @@ export const en = {
     notifications: {
       quizActivated: {
         title: "New active quiz",
-        message: "{{className}} · {{lessonTitle}} now has an active quiz ready for responses.",
+        message:
+          "{{className}} · {{lessonTitle}} now has an active quiz ready for responses.",
         cta: "Open quiz",
         dismiss: "Later",
       },
@@ -559,6 +613,13 @@ export const en = {
       en: "English",
       hu: "Hungarian",
     },
+    theme: {
+      switch: "Switch theme",
+      light: "Light",
+      dark: "Dark",
+      system: "System",
+    },
+    back: "Back",
     notFound: {
       title: "Page Not Found",
       message: "The page you're looking for doesn't exist or has been moved.",

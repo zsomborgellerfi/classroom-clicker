@@ -20,6 +20,15 @@ router.get("/classes/:id", classController.getById);
 router.put("/classes/:id", classController.update);
 router.delete("/classes/:id", classController.delete);
 router.post("/classes/:id/students", classController.addStudent);
+router.post("/classes/:id/students/bulk", classController.bulkAddStudents);
+router.get(
+  "/classes/:id/students/:studentId",
+  classController.getStudentDetails,
+);
+router.delete(
+  "/classes/:id/students/:studentId",
+  classController.removeStudent,
+);
 router.get("/classes/:id/invites", classController.getInvites);
 router.post("/classes/:id/invites", classController.createInvite);
 router.delete(

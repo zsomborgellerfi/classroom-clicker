@@ -21,6 +21,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSelector } from "@/shared/ui/LanguageSelector";
+import { ThemeSwitcher } from "@/shared/ui/ThemeSwitcher";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/auth/slice";
 
@@ -77,6 +78,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
                 {`${user.firstName} ${user.lastName}`}
               </Typography>
             )}
+            <ThemeSwitcher />
             <LanguageSelector />
             <Button
               color="inherit"

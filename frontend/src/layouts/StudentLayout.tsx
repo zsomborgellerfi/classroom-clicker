@@ -19,11 +19,12 @@ import {
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { LanguageSelector } from "@/shared/ui/LanguageSelector";
+import { QuizActivationListener } from "@/features/student/components/QuizActivationListener";
 import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSelector } from "@/shared/ui/LanguageSelector";
+import { ThemeSwitcher } from "@/shared/ui/ThemeSwitcher";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/auth/slice";
-import { QuizActivationListener } from "@/features/student/components/QuizActivationListener";
 
 const DRAWER_WIDTH = 240;
 
@@ -92,6 +93,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
                 {`${user.firstName} ${user.lastName}`}
               </Typography>
             )}
+            <ThemeSwitcher />
             <LanguageSelector />
             <Button
               color="inherit"

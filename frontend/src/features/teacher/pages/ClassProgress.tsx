@@ -1,6 +1,8 @@
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Paper,
@@ -13,14 +15,14 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 import { useTranslation } from "@/hooks/useTranslation";
 import { TeacherLayout } from "@/layouts/TeacherLayout";
 import api, { ENDPOINTS } from "@/lib/api";
+import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 
 type ClassProgressResponse = {
   id: string;
@@ -40,6 +42,7 @@ type ClassProgressResponse = {
 
 export default function ClassProgress() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { classId } = useParams<{ classId: string }>();
 
   const { data: classInfo } = useQuery({
@@ -119,19 +122,25 @@ export default function ClassProgress() {
   const breadcrumbItems = [
     { label: t("teacher.dashboard.title"), path: "/teacher" },
     { label: t("teacher.classes.title"), path: "/teacher/classes" },
-    { label: classInfo?.name || t("teacher.progress.title") },
+    {
+      label: classInfo?.name || t("teacher.classes.progress.title"),
+      path: classId ? `/teacher/classes/${classId}` : undefined,
+    },
+    { label: t("teacher.classes.progress.title") },
   ];
 
   return (
     <TeacherLayout>
       <Breadcrumbs items={breadcrumbItems} />
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          {classInfo?.name ?? t("teacher.progress.title")}
-        </Typography>
-        <Typography color="text.secondary">
-          {t("teacher.progress.subtitle")}
-        </Typography>
+      <Box sx={{ mb: 3, display: "flex", alignItems: "flex-start", gap: 2 }}>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h4" gutterBottom>
+            {classInfo?.name ?? t("teacher.classes.progress.title")}
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            {t("teacher.classes.progress.subtitle")}
+          </Typography>
+        </Box>
       </Box>
 
       {isLoading && (
@@ -143,7 +152,7 @@ export default function ClassProgress() {
 
       {isError && (
         <Alert severity="error" onClose={() => refetch()}>
-          {t("teacher.progress.error")}
+          {t("teacher.classes.progress.error")}
         </Alert>
       )}
 
@@ -152,26 +161,35 @@ export default function ClassProgress() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                {t("teacher.progress.summary")}
+                {t("teacher.classes.progress.summary")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t("teacher.classes.progress.summaryDescription")}
               </Typography>
               {studentStats.length === 0 ? (
                 <Typography color="text.secondary">
-                  {t("teacher.progress.empty")}
+                  {t("teacher.classes.progress.empty")}
                 </Typography>
               ) : (
                 <TableContainer component={Paper} variant="outlined">
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell>{t("teacher.progress.table.student")}</TableCell>
-                        <TableCell>{t("teacher.progress.table.email")}</TableCell>
-                        <TableCell align="right">
-                          {t("teacher.progress.table.attempts")}
+                        <TableCell>
+                          {t("teacher.classes.progress.table.student")}
+                        </TableCell>
+                        <TableCell>
+                          {t("teacher.classes.progress.table.email")}
                         </TableCell>
                         <TableCell align="right">
-                          {t("teacher.progress.table.averageScore")}
+                          {t("teacher.classes.progress.table.attempts")}
                         </TableCell>
-                        <TableCell>{t("teacher.progress.table.lastSubmitted")}</TableCell>
+                        <TableCell align="right">
+                          {t("teacher.classes.progress.table.averageScore")}
+                        </TableCell>
+                        <TableCell>
+                          {t("teacher.classes.progress.table.lastSubmitted")}
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -181,7 +199,11 @@ export default function ClassProgress() {
                           <TableCell>{stat.email}</TableCell>
                           <TableCell align="right">{stat.attempts}</TableCell>
                           <TableCell align="right">
-                            {Math.round(stat.avgScore * 100)}%
+                            {Math.min(
+                              100,
+                              Math.round(Math.min(stat.avgScore, 1) * 100),
+                            )}
+                            %
                           </TableCell>
                           <TableCell>
                             {new Date(stat.lastSubmittedAt).toLocaleString()}
@@ -199,19 +221,30 @@ export default function ClassProgress() {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  {t("teacher.progress.recentSubmissions")}
+                  {t("teacher.classes.progress.recentSubmissions")}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {t("teacher.classes.progress.recentSubmissionsDescription")}
                 </Typography>
                 <TableContainer component={Paper} variant="outlined">
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell>{t("teacher.progress.table.quiz")}</TableCell>
-                        <TableCell>{t("teacher.progress.table.student")}</TableCell>
-                        <TableCell align="right">
-                          {t("teacher.progress.table.score")}
+                        <TableCell>
+                          {t("teacher.classes.progress.table.quiz")}
                         </TableCell>
                         <TableCell>
-                          {t("teacher.progress.table.submittedAt")}
+                          {t("teacher.classes.progress.table.student")}
+                        </TableCell>
+                        <TableCell align="right">
+                          {t("teacher.classes.progress.table.score")}
+                        </TableCell>
+                        <TableCell>
+                          {t("teacher.classes.progress.table.submittedAt")}
                         </TableCell>
                       </TableRow>
                     </TableHead>
@@ -221,7 +254,11 @@ export default function ClassProgress() {
                           <TableCell>{response.quiz.title}</TableCell>
                           <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
                           <TableCell align="right">
-                            {Math.round(response.score * 100)}%
+                            {Math.min(
+                              100,
+                              Math.round(Math.min(response.score, 1) * 100),
+                            )}
+                            %
                           </TableCell>
                           <TableCell>
                             {new Date(response.submittedAt).toLocaleString()}

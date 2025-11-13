@@ -1,3 +1,4 @@
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import {
   Box,
   Breadcrumbs,
@@ -17,19 +18,21 @@ import {
   TableSortLabel,
   Typography,
 } from "@mui/material";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 
 import { Quiz, StudentResponse } from "@shared/types";
 
+import { QuizFormDialog } from "@/features/teacher/components/QuizFormDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { TeacherLayout } from "@/layouts/TeacherLayout";
 import api, { ENDPOINTS } from "@/lib/api";
-import { QuizFormDialog } from "@/features/teacher/components/QuizFormDialog";
-import { useAppSelector } from "@/store/hooks";
+import { exportQuizResults } from "@/lib/export";
 import { connectSocket } from "@/lib/socket";
+import { useAppSelector } from "@/store/hooks";
 
 export function QuizDetails() {
   const { classId, lessonId, quizId } = useParams();
@@ -62,9 +65,10 @@ export function QuizDetails() {
   }>({
     queryKey: ["class", classId],
     queryFn: async () => {
-      const response = await api.get<{ id: string; students: { id: string }[] }>(
-        ENDPOINTS.CLASS.GET(classId!),
-      );
+      const response = await api.get<{
+        id: string;
+        students: { id: string }[];
+      }>(ENDPOINTS.CLASS.GET(classId!));
       return response.data;
     },
     enabled: Boolean(classId),
@@ -76,6 +80,37 @@ export function QuizDetails() {
   );
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const activateQuizMutation = useMutation({
+    mutationFn: async (quizData: Quiz) => {
+      const response = await api.put<Quiz>(
+        ENDPOINTS.QUIZ.UPDATE(classId!, lessonId!, quizId!),
+        {
+          title: quizData.title,
+          isActive: true,
+          timeLimitSeconds: quizData.timeLimitSeconds,
+          availableUntil: quizData.availableUntil,
+          attemptLimit: quizData.attemptLimit,
+        },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quiz", quizId] });
+      queryClient.invalidateQueries({ queryKey: ["quizzes", lessonId] });
+      toast.success(t("teacher.quizzes.activate.success"));
+    },
+    onError: () => {
+      toast.error(t("teacher.quizzes.activate.error"));
+    },
+  });
+
+  const handleActivate = () => {
+    if (quiz) {
+      activateQuizMutation.mutate(quiz);
+    }
+  };
+
   useEffect(() => {
     if (!token || !quizId || !lessonId || !classId) {
       return;
@@ -141,6 +176,36 @@ export function QuizDetails() {
   };
 
   if (!quiz) return null;
+
+  // Check if quiz has started (has responses)
+  const hasStarted = (responses?.length ?? 0) > 0;
+
+  // Check if quiz is finished (deadline has passed)
+  const isFinished = (() => {
+    if (!quiz.isActive && !hasStarted) {
+      return false; // Not started yet
+    }
+
+    const deadlines: number[] = [];
+    if (quiz.availableUntil) {
+      deadlines.push(new Date(quiz.availableUntil).getTime());
+    }
+    if (quiz.timeLimitSeconds && quiz.activatedAt) {
+      deadlines.push(
+        new Date(quiz.activatedAt).getTime() + quiz.timeLimitSeconds * 1000,
+      );
+    }
+
+    if (deadlines.length === 0) {
+      return false; // No deadline, not finished
+    }
+
+    const deadline = Math.min(...deadlines);
+    return Date.now() > deadline;
+  })();
+
+  // Hide buttons if quiz has started or is finished
+  const canEdit = !hasStarted && !isFinished;
 
   // Calculate statistics
   const totalResponses = responses?.length || 0;
@@ -262,12 +327,35 @@ export function QuizDetails() {
           <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
             {t("teacher.quizzes.title")}
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => setIsEditDialogOpen(true)}
-          >
-            {t("teacher.quizzes.actions.edit")}
-          </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            {!quiz.isActive && canEdit && (
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleActivate}
+                disabled={activateQuizMutation.isPending}
+              >
+                {t("teacher.quizzes.actions.activate")}
+              </Button>
+            )}
+            {responses && responses.length > 0 && (
+              <Button
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                onClick={() => exportQuizResults(responses, quiz.title)}
+              >
+                {t("teacher.quizzes.export")}
+              </Button>
+            )}
+            {canEdit && (
+              <Button
+                variant="contained"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                {t("teacher.quizzes.actions.edit")}
+              </Button>
+            )}
+          </Box>
         </Box>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
           {metadata.map(({ label, color }) => (
@@ -300,10 +388,16 @@ export function QuizDetails() {
                 </Typography>
                 <Typography variant="h3">
                   {responses
-                    ? `${Math.round(
-                        (responses.reduce((acc, r) => acc + (r.score || 0), 0) /
-                          responses.length) *
-                          100,
+                    ? `${Math.min(
+                        100,
+                        Math.round(
+                          (responses.reduce(
+                            (acc, r) => acc + Math.min(r.score || 0, 1), // Clamp individual scores to 0-1
+                            0,
+                          ) /
+                            responses.length) *
+                            100,
+                        ),
                       )}%`
                     : t("teacher.quizzes.stats.noResponses")}
                 </Typography>
@@ -403,7 +497,7 @@ export function QuizDetails() {
                 sortResponses(responses).map((response) => (
                   <TableRow key={response.id}>
                     <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
-                    <TableCell>{`${Math.round(response.score * 100)}%`}</TableCell>
+                    <TableCell>{`${Math.min(100, Math.round(Math.min(response.score, 1) * 100))}%`}</TableCell>
                     <TableCell>
                       {new Date(response.submittedAt).toLocaleString()}
                     </TableCell>

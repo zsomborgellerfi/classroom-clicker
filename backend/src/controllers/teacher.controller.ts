@@ -13,22 +13,61 @@ class TeacherController {
         return res.status(403).json({ error: "Unauthorized" });
       }
 
-      const students = await prisma.user.findMany({
-        where: {
-          role: UserRole.STUDENT,
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-        orderBy: {
-          firstName: "asc",
+      const search = (req.query.search as string) || "";
+      const limit = Math.min(
+        parseInt((req.query.limit as string) || "50", 10),
+        100,
+      );
+      const offset = parseInt((req.query.offset as string) || "0", 10);
+      const validOrderBy = ["firstName", "lastName", "email"];
+      const orderByParam = (req.query.orderBy as string) || "firstName";
+      const orderBy = validOrderBy.includes(orderByParam)
+        ? orderByParam
+        : "firstName";
+      const order = (req.query.order as string) === "desc" ? "desc" : "asc";
+
+      const searchFilter = search
+        ? {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" as const } },
+              { lastName: { contains: search, mode: "insensitive" as const } },
+              { email: { contains: search, mode: "insensitive" as const } },
+            ],
+          }
+        : {};
+
+      const where = {
+        role: UserRole.STUDENT,
+        ...searchFilter,
+      };
+
+      const [students, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+          orderBy: {
+            [orderBy]: order,
+          },
+          take: limit,
+          skip: offset,
+        }),
+        prisma.user.count({ where }),
+      ]);
+
+      res.json({
+        data: students,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + limit < total,
         },
       });
-
-      res.json(students);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

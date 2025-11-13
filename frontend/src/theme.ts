@@ -9,7 +9,7 @@ declare module "@mui/material/styles" {
   }
 }
 
-export const theme = createTheme({
+const baseTheme = {
   palette: {
     primary: {
       main: "#2563eb", // Blue
@@ -49,22 +49,6 @@ export const theme = createTheme({
       light: "#10b981",
       dark: "#047857",
     },
-    grey: {
-      50: "#f9fafb",
-      100: "#f3f4f6",
-      200: "#e5e7eb",
-      300: "#d1d5db",
-      400: "#9ca3af",
-      500: "#6b7280",
-      600: "#4b5563",
-      700: "#374151",
-      800: "#1f2937",
-      900: "#111827",
-    },
-    background: {
-      default: "#f9fafb",
-      paper: "#ffffff",
-    },
   },
   typography: {
     fontFamily: [
@@ -97,7 +81,7 @@ export const theme = createTheme({
       lineHeight: 1.5,
     },
     button: {
-      textTransform: "none",
+      textTransform: "none" as const,
       fontWeight: 500,
     },
   },
@@ -112,26 +96,26 @@ export const theme = createTheme({
           padding: "8px 16px",
           fontWeight: 500,
         },
-        contained: ({ theme }) => ({
+        contained: ({ theme }: { theme: ReturnType<typeof createTheme> }) => ({
           boxShadow: "none",
           "&:hover": {
             boxShadow: "none",
             backgroundColor: alpha(theme.palette.primary.main, 0.9),
           },
         }),
-        outlined: ({ theme }) => ({
-          borderColor: theme.palette.grey[300],
+        outlined: ({ theme }: { theme: ReturnType<typeof createTheme> }) => ({
+          borderColor: theme.palette.mode === "dark" ? theme.palette.grey[700] : theme.palette.grey[300],
           "&:hover": {
-            backgroundColor: theme.palette.grey[50],
-            borderColor: theme.palette.grey[400],
+            backgroundColor: theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[50],
+            borderColor: theme.palette.mode === "dark" ? theme.palette.grey[600] : theme.palette.grey[400],
           },
         }),
       },
     },
     MuiTextField: {
       defaultProps: {
-        variant: "outlined",
-        size: "medium",
+        variant: "outlined" as const,
+        size: "medium" as const,
       },
       styleOverrides: {
         root: {
@@ -155,4 +139,65 @@ export const theme = createTheme({
       },
     },
   },
+};
+
+export const lightTheme = createTheme({
+  ...baseTheme,
+  palette: {
+    ...baseTheme.palette,
+    mode: "light",
+    grey: {
+      50: "#f9fafb",
+      100: "#f3f4f6",
+      200: "#e5e7eb",
+      300: "#d1d5db",
+      400: "#9ca3af",
+      500: "#6b7280",
+      600: "#4b5563",
+      700: "#374151",
+      800: "#1f2937",
+      900: "#111827",
+    },
+    background: {
+      default: "#f9fafb",
+      paper: "#ffffff",
+    },
+    text: {
+      primary: "#111827",
+      secondary: "#6b7280",
+    },
+  },
 });
+
+export const darkTheme = createTheme({
+  ...baseTheme,
+  palette: {
+    ...baseTheme.palette,
+    mode: "dark",
+    grey: {
+      50: "#111827",
+      100: "#1f2937",
+      200: "#374151",
+      300: "#4b5563",
+      400: "#6b7280",
+      500: "#9ca3af",
+      600: "#d1d5db",
+      700: "#e5e7eb",
+      800: "#f3f4f6",
+      900: "#f9fafb",
+    },
+    background: {
+      default: "#111827",
+      paper: "#1f2937",
+    },
+    text: {
+      primary: "#f9fafb",
+      secondary: "#d1d5db",
+    },
+  },
+});
+
+// Legacy export for backward compatibility
+export const theme = lightTheme;
+
+export type ThemeMode = "light" | "dark" | "system";

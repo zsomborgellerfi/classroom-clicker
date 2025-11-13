@@ -87,6 +87,7 @@ Run everything (backend, frontend, Postgres, pgAdmin, nginx proxy) using the hel
 - **Frontend unit/component tests (Vitest + React Testing Library)**: `cd frontend && npm run test` (watch) or `npm run test:run` for a single run with coverage.
 - **Frontend TypeScript check**: `cd frontend && npx tsc --noEmit`
 - **Backend TypeScript check**: `cd backend && npx tsc --noEmit`
+- **Both TypeScript projects**: `./scripts/run-tsc.sh` (runs backend then frontend `npm run tsc` for parity with CI).
 
 ### Backend testing details
 - Jest picks up any `*.test.ts` under `backend/src/**`; keep unit tests close to the modules they cover (e.g., `middleware/auth.test.ts`).
