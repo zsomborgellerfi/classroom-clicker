@@ -16,6 +16,7 @@ import { z } from "zod";
 import { useTranslation } from "@/hooks/useTranslation";
 import api from "@/lib/api";
 import { ENDPOINTS } from "@/lib/api";
+
 import type { ClassListItem } from "./ClassTable";
 
 interface ClassFormDialogProps {
@@ -26,7 +27,7 @@ interface ClassFormDialogProps {
 
 const classSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  description: z.string().optional(),
 });
 
 type ClassFormData = z.infer<typeof classSchema>;

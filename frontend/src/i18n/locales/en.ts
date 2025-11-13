@@ -13,12 +13,33 @@ export const en = {
   admin: {
     dashboard: {
       title: "Admin Dashboard",
-      welcome: "Welcome to Admin Dashboard",
+      subtitle: "Monitor platform-wide activity and manage your organization.",
+      insights: {
+        users: "Total Users",
+        teachers: "Teachers",
+        students: "Students",
+        admins: "Admins",
+        classes: "Classes",
+        lessons: "Lessons",
+        quizzes: "Quizzes",
+      },
+      recentUsers: {
+        title: "Newest Users",
+        empty: "No recent users yet.",
+      },
+      topClasses: {
+        title: "Newest Classes",
+        students: "{{count}} students",
+        lessons: "{{count}} lessons",
+        created: "Created {{date}}",
+        empty: "No classes to show yet.",
+      },
     },
     users: {
       title: "User Management",
       table: {
-        name: "Name",
+        firstName: "First Name",
+        lastName: "Last Name",
         email: "Email",
         role: "Role",
         createdAt: "Created At",
@@ -35,9 +56,11 @@ export const en = {
         success: "User created successfully",
         error: "Failed to create user",
       },
-      name: {
-        label: "Name",
-        min: "Name must be at least 2 characters",
+      firstName: {
+        label: "First Name",
+      },
+      lastName: {
+        label: "Last Name",
       },
       email: {
         label: "Email",
@@ -66,6 +89,25 @@ export const en = {
           "Are you sure you want to delete this user? This action cannot be undone.",
         success: "User deleted successfully",
         error: "Failed to delete user",
+      },
+      import: {
+        downloadTemplate: "Download CSV template",
+        openButton: "Import Users",
+        title: "Bulk Import Users",
+        description:
+          "Upload a CSV file with the columns: firstName, lastName, email, password, role.",
+        selectFile: "Select CSV file",
+        selectedFile: "Selected file: {{name}}",
+        previewTitle: "Preview ({{count}} users)",
+        previewMore: "+{{count}} more",
+        emptyState: "Select a CSV file to preview users before importing.",
+        importButton: "Import",
+        success: "Imported {{created}} users ({{skipped}} skipped)",
+        error: "Failed to import users",
+        errors: {
+          empty: "The CSV file must contain at least one user row.",
+          headers: "Missing columns: {{fields}}",
+        },
       },
     },
   },
@@ -316,9 +358,30 @@ export const en = {
   student: {
     dashboard: {
       title: "Student Dashboard",
+      menu: "Dashboard",
+      subtitle: "See what needs your attention and keep up with upcoming quizzes.",
       welcome: "Here are your enrolled classes and lessons.",
+      stats: {
+        totalQuizzes: "Assigned Quizzes",
+        completed: "Completed",
+        averageScore: "Average Score",
+      },
+      activeQuizzes: {
+        title: "Active Quizzes",
+        opens: "Opens",
+        empty: "There are no active quizzes right now.",
+      },
+      nextQuiz: {
+        title: "Next Up",
+        opens: "Opens",
+        closes: "Closes",
+        cta: "Go to quiz",
+        empty: "No upcoming quizzes scheduled.",
+      },
+      error: "Unable to load dashboard data.",
     },
     classes: {
+      menu: "My Classes",
       title: "My Classes",
       subtitle: "Review your current courses and open lessons.",
       empty: "You are not enrolled in any classes yet.",
@@ -372,6 +435,14 @@ export const en = {
       error: "Failed to submit quiz.",
       inactive: "This quiz is currently inactive.",
       unanswered: "Please answer the question before submitting.",
+    },
+    notifications: {
+      quizActivated: {
+        title: "New active quiz",
+        message: "{{className}} · {{lessonTitle}} now has an active quiz ready for responses.",
+        cta: "Open quiz",
+        dismiss: "Later",
+      },
     },
     progress: {
       title: "My Progress",

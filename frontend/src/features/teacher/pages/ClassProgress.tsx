@@ -28,7 +28,8 @@ type ClassProgressResponse = {
   submittedAt: string;
   user: {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
   };
   quiz: {
@@ -85,7 +86,7 @@ export default function ClassProgress() {
     responses.forEach((response) => {
       const existing = map.get(response.user.id);
       const attemptData = {
-        name: response.user.name,
+        name: `${response.user.firstName} ${response.user.lastName}`,
         email: response.user.email ?? "",
         attempts: 1,
         avgScore: response.score,
@@ -218,7 +219,7 @@ export default function ClassProgress() {
                       {responses.slice(0, 10).map((response) => (
                         <TableRow key={response.id}>
                           <TableCell>{response.quiz.title}</TableCell>
-                          <TableCell>{response.user.name}</TableCell>
+                          <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
                           <TableCell align="right">
                             {Math.round(response.score * 100)}%
                           </TableCell>

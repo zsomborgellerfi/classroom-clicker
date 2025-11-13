@@ -27,7 +27,8 @@ export interface StudentResponse {
   quizId: string;
   user: {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
   };
   answers: {
     questionId: string;

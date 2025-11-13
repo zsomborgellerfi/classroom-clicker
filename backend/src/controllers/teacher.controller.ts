@@ -19,11 +19,12 @@ class TeacherController {
         },
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
         orderBy: {
-          name: "asc",
+          firstName: "asc",
         },
       });
 
@@ -109,7 +110,8 @@ class TeacherController {
           user: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
             },
           },
           quiz: {

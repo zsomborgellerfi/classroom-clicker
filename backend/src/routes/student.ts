@@ -31,5 +31,6 @@ router.post(
 );
 router.post("/classes/join", classController.joinWithInviteCode);
 router.get("/progress", classController.getStudentProgress);
+router.get("/dashboard", classController.getStudentDashboard);
 
 export default router;

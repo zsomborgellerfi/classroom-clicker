@@ -176,7 +176,9 @@ export default function ClassDetails() {
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
             <Chip
               label={`${t("student.classDetails.teacher")}: ${
-                classData.teacher?.name ?? "—"
+                classData.teacher?.firstName && classData.teacher?.lastName
+                  ? `${classData.teacher.firstName} ${classData.teacher.lastName}`
+                  : "—"
               }`}
             />
             <Chip

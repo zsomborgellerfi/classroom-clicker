@@ -21,14 +21,38 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { LanguageSelector } from "@/shared/ui/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/auth/slice";
+import { QuizActivationListener } from "@/features/student/components/QuizActivationListener";
 
 const DRAWER_WIDTH = 240;
 
-const menuItems = [
-  { path: "/student", icon: <DashboardIcon />, labelKey: "classes.title" },
-  { path: "/student/progress", icon: <ShowChartIcon />, labelKey: "progress.title" },
+type MenuItem = {
+  path: string;
+  icon: ReactNode;
+  labelKey: string;
+  match?: (pathname: string) => boolean;
+};
+
+const menuItems: MenuItem[] = [
+  {
+    path: "/student",
+    icon: <DashboardIcon />,
+    labelKey: "student.dashboard.menu",
+    match: (pathname) => pathname === "/student",
+  },
+  {
+    path: "/student/classes",
+    icon: <MenuBookIcon />,
+    labelKey: "student.classes.menu",
+    match: (pathname) => pathname.startsWith("/student/classes"),
+  },
+  {
+    path: "/student/progress",
+    icon: <ShowChartIcon />,
+    labelKey: "student.progress.title",
+    match: (pathname) => pathname === "/student/progress",
+  },
 ];
 
 interface StudentLayoutProps {
@@ -38,22 +62,13 @@ interface StudentLayoutProps {
 export function StudentLayout({ children }: StudentLayoutProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
-  };
-
-  const isSelected = (path: string) => {
-    if (path === "/student") {
-      return (
-        location.pathname === "/student" ||
-        location.pathname.startsWith("/student/classes")
-      );
-    }
-    return location.pathname === path;
   };
 
   return (
@@ -72,6 +87,11 @@ export function StudentLayout({ children }: StudentLayoutProps) {
             <Typography variant="h6">{t("student.dashboard.title")}</Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {user?.firstName && user?.lastName && (
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {`${user.firstName} ${user.lastName}`}
+              </Typography>
+            )}
             <LanguageSelector />
             <Button
               color="inherit"
@@ -100,11 +120,15 @@ export function StudentLayout({ children }: StudentLayoutProps) {
             {menuItems.map((item) => (
               <ListItem key={item.path} disablePadding>
                 <ListItemButton
-                  selected={isSelected(item.path)}
+                  selected={
+                    item.match
+                      ? item.match(location.pathname)
+                      : location.pathname === item.path
+                  }
                   onClick={() => navigate(item.path)}
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={t(`student.${item.labelKey}`)} />
+                  <ListItemText primary={t(item.labelKey)} />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -115,6 +139,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
         <Toolbar />
         <Container maxWidth="lg">{children}</Container>
       </Box>
+      <QuizActivationListener />
     </Box>
   );
 }

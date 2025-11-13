@@ -71,7 +71,9 @@ export function QuizDetails() {
 
       switch (orderBy) {
         case "name":
-          return multiplier * a.user.name.localeCompare(b.user.name);
+          const nameA = `${a.user.firstName} ${a.user.lastName}`;
+          const nameB = `${b.user.firstName} ${b.user.lastName}`;
+          return multiplier * nameA.localeCompare(nameB);
         case "score":
           return multiplier * (a.score - b.score);
         case "submittedAt":
@@ -266,7 +268,7 @@ export function QuizDetails() {
               {responses &&
                 sortResponses(responses).map((response) => (
                   <TableRow key={response.id}>
-                    <TableCell>{response.user.name}</TableCell>
+                    <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
                     <TableCell>{`${Math.round(response.score * 100)}%`}</TableCell>
                     <TableCell>
                       {new Date(response.submittedAt).toLocaleString()}

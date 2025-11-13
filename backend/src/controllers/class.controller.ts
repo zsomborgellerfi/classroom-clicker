@@ -49,7 +49,8 @@ class ClassController {
           teacher: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
@@ -91,7 +92,8 @@ class ClassController {
           teacher: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
@@ -120,14 +122,16 @@ class ClassController {
           teacher: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
           students: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
@@ -197,7 +201,8 @@ class ClassController {
           teacher: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
@@ -277,7 +282,8 @@ class ClassController {
           students: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
@@ -504,7 +510,8 @@ class ClassController {
         include: {
           teacher: {
             select: {
-              name: true,
+              firstName: true,
+              lastName: true,
             },
           },
           _count: {
@@ -596,7 +603,8 @@ class ClassController {
           user: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
@@ -616,6 +624,128 @@ class ClassController {
     } catch (error) {
       console.error("Error fetching class progress:", error);
       res.status(500).json({ error: "Failed to fetch class progress" });
+    }
+  }
+
+  async getStudentDashboard(req: AuthRequest, res: Response) {
+    try {
+      const studentId = req.user?.id;
+
+      if (!studentId || req.user?.role !== UserRole.STUDENT) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const [activeQuizzes, upcomingQuiz, totalQuizzes, completedQuizzes, avgScore] =
+        await Promise.all([
+          prisma.quiz.findMany({
+            where: {
+              isActive: true,
+              lesson: {
+                class: {
+                  students: {
+                    some: {
+                      id: studentId,
+                    },
+                  },
+                },
+              },
+            },
+            include: {
+              lesson: {
+                select: {
+                  id: true,
+                  title: true,
+                  class: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              updatedAt: "desc",
+            },
+            take: 5,
+          }),
+          prisma.quiz.findFirst({
+            where: {
+              isActive: false,
+              lesson: {
+                class: {
+                  students: {
+                    some: {
+                      id: studentId,
+                    },
+                  },
+                },
+              },
+            },
+            include: {
+              lesson: {
+                select: {
+                  id: true,
+                  title: true,
+                  class: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+          }),
+          prisma.quiz.count({
+            where: {
+              lesson: {
+                class: {
+                  students: {
+                    some: {
+                      id: studentId,
+                    },
+                  },
+                },
+              },
+            },
+          }),
+          prisma.response.count({
+            where: {
+              userId: studentId,
+            },
+          }),
+          prisma.response.aggregate({
+            where: {
+              userId: studentId,
+            },
+            _avg: {
+              score: true,
+            },
+          }),
+        ]);
+
+      const mapQuizSummary = (quiz: typeof activeQuizzes[number]) => ({
+        id: quiz.id,
+        title: quiz.title,
+        opensAt: quiz.createdAt,
+        closesAt: null,
+        lesson: quiz.lesson,
+      });
+
+      res.json({
+        activeQuizzes: activeQuizzes.map(mapQuizSummary),
+        nextQuiz: upcomingQuiz ? mapQuizSummary(upcomingQuiz) : null,
+        stats: {
+          totalQuizzes,
+          completedQuizzes,
+          averageScore: avgScore._avg.score ?? 0,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching student dashboard:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
     }
   }
 }

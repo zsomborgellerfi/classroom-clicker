@@ -10,9 +10,11 @@ import { NotFound } from "@/shared/ui/NotFound";
 import { RoleRoute } from "@/shared/ui/RoleRoute";
 import { UserRole } from "@/enums/userRole";
 import Login from "@/features/auth/pages/Login";
+import { AuthInitializer } from "@/features/auth/components/AuthInitializer";
 import TeacherDashboard from "@/features/teacher/pages/TeacherDashboard";
 import AdminDashboard from "@/features/admin/pages/AdminDashboard";
 import UserManagement from "@/features/admin/pages/UserManagement";
+import StudentDashboard from "@/features/student/pages/StudentDashboard";
 import StudentClassDetails from "@/features/student/pages/ClassDetails";
 import StudentProgress from "@/features/student/pages/Progress";
 import StudentQuiz from "@/features/student/pages/Quiz";
@@ -32,6 +34,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
+        <AuthInitializer />
         <Router>
           <Routes>
             {/* Public routes */}
@@ -68,7 +71,8 @@ function App() {
 
             {/* Student routes */}
             <Route element={<RoleRoute roles={[UserRole.STUDENT]} />}>
-              <Route path="/student" element={<StudentClasses />} />
+              <Route path="/student" element={<StudentDashboard />} />
+              <Route path="/student/classes" element={<StudentClasses />} />
               <Route
                 path="/student/classes/:classId"
                 element={<StudentClassDetails />}

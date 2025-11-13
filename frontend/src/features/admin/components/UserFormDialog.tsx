@@ -32,7 +32,8 @@ interface UserFormDialogProps {
 
 const userSchema = z.object({
   email: z.string().email("Invalid email address"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   role: z.nativeEnum(UserRole),
   password: z
     .string()
@@ -63,13 +64,15 @@ export function UserFormDialog({ user, open, onClose }: UserFormDialogProps) {
     if (user && open) {
       reset({
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
       });
     } else if (!open) {
       reset({
         email: "",
-        name: "",
+        firstName: "",
+        lastName: "",
         role: UserRole.STUDENT,
         password: "",
       });
@@ -118,10 +121,18 @@ export function UserFormDialog({ user, open, onClose }: UserFormDialogProps) {
         </DialogTitle>
         <DialogContent>
           <TextField
-            {...register("name")}
-            label={t("admin.users.name.label")}
-            error={!!errors.name}
-            helperText={errors.name?.message}
+            {...register("firstName")}
+            label={t("admin.users.firstName.label")}
+            error={!!errors.firstName}
+            helperText={errors.firstName?.message}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            {...register("lastName")}
+            label={t("admin.users.lastName.label")}
+            error={!!errors.lastName}
+            helperText={errors.lastName?.message}
             fullWidth
             margin="normal"
           />

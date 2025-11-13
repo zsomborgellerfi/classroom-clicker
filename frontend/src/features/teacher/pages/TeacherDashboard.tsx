@@ -49,7 +49,8 @@ interface DashboardStats {
     submittedAt: string;
     user: {
       id: string;
-      name: string;
+      firstName: string;
+      lastName: string;
     };
     quiz: {
       id: string;
@@ -227,7 +228,7 @@ export default function TeacherDashboard() {
                         }
                       >
                         <ListItemText
-                          primary={`${response.quiz.title} · ${response.user.name}`}
+                          primary={`${response.quiz.title} · ${response.user.firstName} ${response.user.lastName}`}
                           secondary={`${t("teacher.dashboard.recentResponses.submittedBy")}: ${new Date(response.submittedAt).toLocaleString()}`}
                         />
                       </ListItem>

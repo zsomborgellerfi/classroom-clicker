@@ -3,6 +3,7 @@ import { Response } from "express";
 
 import { UserRole } from "../enums/userRole";
 import { AuthRequest } from "../types";
+import socketService from "../services/socket.service";
 
 const prisma = new PrismaClient();
 
@@ -38,6 +39,53 @@ async function getClassForUser(classId: string, user?: AuthRequest["user"]) {
   }
 
   return null;
+}
+
+async function notifyStudentsAboutQuizActivation(quizId: string) {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      select: {
+        id: true,
+        title: true,
+        lesson: {
+          select: {
+            id: true,
+            title: true,
+            class: {
+              select: {
+                id: true,
+                name: true,
+                students: {
+                  select: { id: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!quiz) {
+      return;
+    }
+
+    const studentIds = quiz.lesson.class.students.map((student) => student.id);
+    if (!studentIds.length) {
+      return;
+    }
+
+    socketService.emitQuizActivated(studentIds, {
+      quizId: quiz.id,
+      quizTitle: quiz.title,
+      lessonId: quiz.lesson.id,
+      lessonTitle: quiz.lesson.title,
+      classId: quiz.lesson.class.id,
+      className: quiz.lesson.class.name,
+    });
+  } catch (error) {
+    console.error("Error notifying students about quiz activation:", error);
+  }
 }
 
 class QuizController {
@@ -210,6 +258,10 @@ class QuizController {
         };
       });
 
+      if (quiz.isActive) {
+        await notifyStudentsAboutQuizActivation(quiz.id);
+      }
+
       res.status(201).json(quiz);
     } catch (error) {
       console.error("Error creating quiz:", error);
@@ -318,6 +370,10 @@ class QuizController {
         };
       });
 
+      if (!existingQuiz.isActive && updatedQuiz.isActive) {
+        await notifyStudentsAboutQuizActivation(updatedQuiz.id);
+      }
+
       res.json(updatedQuiz);
     } catch (error) {
       console.error("Error updating quiz:", error);
@@ -407,7 +463,8 @@ class QuizController {
           user: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
             },
           },
           answers: true,

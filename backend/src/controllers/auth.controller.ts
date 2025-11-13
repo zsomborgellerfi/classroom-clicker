@@ -5,16 +5,18 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 
 import { User } from "../types";
+import { AuthRequest } from "../types";
 
 const prisma = new PrismaClient();
 
 class AuthController {
   async register(req: Request, res: Response) {
     try {
-      const { email, password, name, role } = req.body as {
+      const { email, password, firstName, lastName, role } = req.body as {
         email: string;
         password: string;
-        name: string;
+        firstName: string;
+        lastName: string;
         role?: User["role"];
       };
 
@@ -32,7 +34,8 @@ class AuthController {
         data: {
           email,
           password: hashedPassword,
-          name,
+          firstName,
+          lastName,
           role: role || "STUDENT",
         },
       });
@@ -48,7 +51,8 @@ class AuthController {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
         },
       });
@@ -88,10 +92,39 @@ class AuthController {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
         },
       });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  async me(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json(user);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

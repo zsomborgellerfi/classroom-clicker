@@ -35,7 +35,8 @@ import { ENDPOINTS } from "@/lib/api";
 
 interface StudentSummary {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
 }
 
@@ -270,7 +271,7 @@ export default function ClassDetails() {
             {classData.students.map((student) => (
               <ListItem key={student.id} divider>
                 <ListItemText
-                  primary={student.name}
+                  primary={`${student.firstName} ${student.lastName}`}
                   secondary={student.email}
                 />
               </ListItem>
@@ -369,7 +370,7 @@ export default function ClassDetails() {
             value={selectedStudent}
             onChange={(_, value) => setSelectedStudent(value)}
             getOptionLabel={(option) =>
-              `${option.name} (${option.email ?? ""})`
+              `${option.firstName} ${option.lastName} (${option.email ?? ""})`
             }
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderInput={(params) => (

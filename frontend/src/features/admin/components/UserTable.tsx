@@ -24,7 +24,7 @@ import api from "@/lib/api";
 import { ENDPOINTS } from "@/lib/api";
 
 type Order = "asc" | "desc";
-type OrderBy = keyof Pick<User, "name" | "email" | "role" | "createdAt">;
+type OrderBy = keyof Pick<User, "firstName" | "lastName" | "email" | "role" | "createdAt">;
 
 interface UsersResponse {
   users: User[];
@@ -41,7 +41,7 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState<Order>("asc");
-  const [orderBy, setOrderBy] = useState<OrderBy>("name");
+  const [orderBy, setOrderBy] = useState<OrderBy>("firstName");
 
   const { data: users, isLoading } = useQuery<UsersResponse>({
     queryKey: ["users"],
@@ -71,7 +71,8 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
   };
 
   const headCells = [
-    { id: "name" as const, label: t("admin.users.table.name") },
+    { id: "firstName" as const, label: t("admin.users.table.firstName") },
+    { id: "lastName" as const, label: t("admin.users.table.lastName") },
     { id: "email" as const, label: t("admin.users.table.email") },
     { id: "role" as const, label: t("admin.users.table.role") },
     { id: "createdAt" as const, label: t("admin.users.table.createdAt") },
@@ -110,7 +111,8 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
           <TableBody>
             {users?.users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.firstName}</TableCell>
+                <TableCell>{user.lastName}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   {t(`admin.users.role.${user.role.toLowerCase()}`)}

@@ -8,7 +8,6 @@ import studentRoutes from "./routes/student";
 import teacherRoutes from "./routes/teacher";
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -23,11 +22,6 @@ app.use("/api/student", studentRoutes);
 // Basic health check route
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok" });
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
 
 export default app;

@@ -15,12 +15,33 @@ export const hu: Translations = {
   admin: {
     dashboard: {
       title: "Admin vezérlőpult",
-      welcome: "Üdv az admin vezérlőpulton",
+      subtitle: "Kövesd nyomon a platform aktivitását és kezeld a felhasználókat.",
+      insights: {
+        users: "Összes felhasználó",
+        teachers: "Tanárok",
+        students: "Diákok",
+        admins: "Adminok",
+        classes: "Kurzusok",
+        lessons: "Leckék",
+        quizzes: "Kvízek",
+      },
+      recentUsers: {
+        title: "Legújabb felhasználók",
+        empty: "Még nincs új felhasználó.",
+      },
+      topClasses: {
+        title: "Legújabb kurzusok",
+        students: "{{count}} diák",
+        lessons: "{{count}} lecke",
+        created: "Létrehozva: {{date}}",
+        empty: "Nincs megjeleníthető kurzus.",
+      },
     },
     users: {
       title: "Felhasználókezelés",
       table: {
-        name: "Név",
+        firstName: "Keresztnév",
+        lastName: "Vezetéknév",
         email: "Email",
         role: "Szerepkör",
         createdAt: "Létrehozva",
@@ -37,9 +58,11 @@ export const hu: Translations = {
         success: "A felhasználó sikeresen létrejött",
         error: "A felhasználó létrehozása nem sikerült",
       },
-      name: {
-        label: "Név",
-        min: "A név legalább 2 karakter legyen",
+      firstName: {
+        label: "Keresztnév",
+      },
+      lastName: {
+        label: "Vezetéknév",
       },
       email: {
         label: "Email",
@@ -69,15 +92,34 @@ export const hu: Translations = {
         success: "A felhasználó törlése sikerült",
         error: "A felhasználó törlése nem sikerült",
       },
+      import: {
+        downloadTemplate: "CSV sablon letöltése",
+        openButton: "Felhasználók importálása",
+        title: "Tömeges felhasználó import",
+        description:
+          "Tölts fel egy CSV fájlt a következő oszlopokkal: firstName, lastName, email, password, role.",
+        selectFile: "CSV fájl kiválasztása",
+        selectedFile: "Kiválasztott fájl: {{name}}",
+        previewTitle: "Előnézet ({{count}} felhasználó)",
+        previewMore: "+{{count}} további",
+        emptyState: "Válassz egy CSV fájlt az importálás előnézetéhez.",
+        importButton: "Importálás",
+        success: "{{created}} felhasználó importálva ({{skipped}} sikertelen)",
+        error: "Az importálás nem sikerült",
+        errors: {
+          empty: "A CSV fájl nem tartalmaz felhasználó sorokat.",
+          headers: "Hiányzó oszlopok: {{fields}}",
+        },
+      },
     },
   },
   teacher: {
     dashboard: {
       title: "Tanári vezérlőpult",
-      welcome: "Üdv újra! Íme az osztályok legfrissebb aktivitása.",
+      welcome: "Üdv újra! Íme a kurzusok legfrissebb aktivitása.",
       stats: {
         title: "Áttekintés",
-        classes: "Osztályok",
+        classes: "Kurzusok",
         lessons: "Leckék",
         students: "Diákok",
         quizzes: "Kvízek",
@@ -87,7 +129,7 @@ export const hu: Translations = {
         noQuiz: "Még nem hoztál létre kvízt.",
         responses: "{{count}} válasz",
         viewQuiz: "Kvíz megnyitása",
-        classLabel: "Osztály",
+        classLabel: "Kurzus",
         lessonLabel: "Lecke",
       },
       recentResponses: {
@@ -95,21 +137,21 @@ export const hu: Translations = {
         empty: "Még nincs beküldött válasz.",
         submittedBy: "Beküldte",
         score: "Pontszám",
-        viewClass: "Osztály megnyitása",
+        viewClass: "Kurzus megnyitása",
       },
     },
     classes: {
-      title: "Osztályok",
-      empty: "Még nincs osztály",
+      title: "Kurzusok",
+      empty: "Még nincs kurzus",
       create: {
-        title: "Új osztály létrehozása",
-        button: "Osztály létrehozása",
+        title: "Új kurzus létrehozása",
+        button: "Kurzus létrehozása",
         loading: "Létrehozás...",
-        success: "Az osztály sikeresen létrejött",
-        error: "Az osztály létrehozása nem sikerült",
+        success: "A kurzus sikeresen létrejött",
+        error: "A kurzus létrehozása nem sikerült",
       },
       name: {
-        label: "Osztály neve",
+        label: "Kurzus neve",
         min: "A név legalább 2 karakter legyen",
       },
       description: {
@@ -124,28 +166,27 @@ export const hu: Translations = {
         actions: "Műveletek",
       },
       actions: {
-        view: "Osztály megnyitása",
-        edit: "Osztály szerkesztése",
-        delete: "Osztály törlése",
+        view: "Kurzus megnyitása",
+        edit: "Kurzus szerkesztése",
+        delete: "Kurzus törlése",
         viewProgress: "Előrehaladás megtekintése",
       },
       delete: {
-        title: "Osztály törlése",
-        confirm:
-          "Biztosan törlöd ezt az osztályt? A művelet nem visszavonható.",
-        success: "Az osztály törlése sikerült",
-        error: "Az osztály törlése nem sikerült",
+        title: "Kurzus törlése",
+        confirm: "Biztosan törlöd ezt a kurzust? A művelet nem visszavonható.",
+        success: "A kurzus törlése sikerült",
+        error: "A kurzus törlése nem sikerült",
       },
       edit: {
-        title: "Osztály szerkesztése",
+        title: "Kurzus szerkesztése",
         button: "Változások mentése",
         loading: "Mentés...",
-        success: "Az osztály frissítése sikerült",
-        error: "Az osztály frissítése nem sikerült",
+        success: "A kurzus frissítése sikerült",
+        error: "A kurzus frissítése nem sikerült",
       },
       students: {
         title: "Beiratkozott diákok",
-        empty: "Ehhez az osztályhoz még nem rendeltek diákot.",
+        empty: "Ehhez a kurzushoz még nem rendeltek diákot.",
         add: "Diák hozzárendelése",
         selectLabel: "Válassz egy diákot",
         success: "A diák hozzárendelése sikerült",
@@ -172,12 +213,12 @@ export const hu: Translations = {
         noExpiry: "Nincs lejárat",
       },
       progress: {
-        title: "Osztály előrehaladása",
-        subtitle: "Kövesd nyomon a diákok kvízeredményeit ebben az osztályban.",
+        title: "Kurzus előrehaladása",
+        subtitle: "Kövesd nyomon a diákok kvízeredményeit ebben a kurzusban.",
         summary: "Diák összesítő",
         recentSubmissions: "Legutóbbi beküldések",
         error: "Nem sikerült betölteni az előrehaladást.",
-        empty: "Még nincs beküldött kvíz ebben az osztályban.",
+        empty: "Még nincs beküldött kvíz ebben a kurzusban.",
         table: {
           student: "Diák",
           email: "Email",
@@ -318,13 +359,34 @@ export const hu: Translations = {
   student: {
     dashboard: {
       title: "Diák vezérlőpult",
-      welcome: "Itt találod a beiratkozott osztályaidat és leckéidet.",
+      menu: "Vezérlőpult",
+      subtitle: "Tekintsd át az aktív kvízeket és kövesd az előrehaladásod.",
+      welcome: "Itt találod a beiratkozott kurzusaidat és leckéidet.",
+      stats: {
+        totalQuizzes: "Hozzárendelt kvízek",
+        completed: "Befejezve",
+        averageScore: "Átlagpontszám",
+      },
+      activeQuizzes: {
+        title: "Aktív kvízek",
+        opens: "Nyitás",
+        empty: "Jelenleg nincs aktív kvíz.",
+      },
+      nextQuiz: {
+        title: "Következő kvíz",
+        opens: "Nyitás",
+        closes: "Zárás",
+        cta: "Ugrás a kvízre",
+        empty: "Nincs közelgő kvíz.",
+      },
+      error: "Nem sikerült betölteni a vezérlőpult adatait.",
     },
     classes: {
-      title: "Osztályaim",
+      menu: "Kurzusaim",
+      title: "Kurzusaim",
       subtitle: "Tekintsd át az aktuális kurzusaidat és a megnyitható leckéket.",
-      empty: "Még nem vagy beiratkozva egyetlen osztályba sem.",
-      error: "Nem sikerült betölteni az osztályokat. Próbáld újra.",
+      empty: "Még nem vagy beiratkozva egyetlen kurzusba sem.",
+      error: "Nem sikerült betölteni a kurzusokat. Próbáld újra.",
       retry: "Újra",
       card: {
         teacher: "Tanár",
@@ -346,7 +408,7 @@ export const hu: Translations = {
       },
     },
     classDetails: {
-      back: "Vissza az osztályokhoz",
+      back: "Vissza a kurzusokhoz",
       teacher: "Tanár",
       description: "Leírás",
       stats: {
@@ -355,7 +417,7 @@ export const hu: Translations = {
       },
       lessons: {
         title: "Leckék",
-        empty: "Ebben az osztályban még nincsenek leckék.",
+        empty: "Ebben a kurzusban még nincsenek leckék.",
         contentLabel: "Tartalmi előnézet",
       },
       quizzes: {
@@ -375,12 +437,20 @@ export const hu: Translations = {
       inactive: "Ez a kvíz jelenleg inaktív.",
       unanswered: "Kérlek válaszolj a kérdésre a beküldés előtt.",
     },
+    notifications: {
+      quizActivated: {
+        title: "Új aktív kvíz",
+        message: "{{className}} · {{lessonTitle}} kurzuson most elindult egy új kvíz.",
+        cta: "Ugrás a kvízre",
+        dismiss: "Később",
+      },
+    },
     progress: {
       title: "Előrehaladásom",
-      subtitle: "Kövesd nyomon a kvízeredményeidet minden osztályban.",
+      subtitle: "Kövesd nyomon a kvízeredményeidet minden kurzusban.",
       averageScore: "Átlagpontszám",
       quizzesCompleted: "Kitöltött kvízek",
-      classes: "Osztályok",
+      classes: "Kurzusok",
       score: "Pontszám",
       error: "Nem sikerült betölteni az előrehaladást.",
       empty: "Még nem küldtél be egyetlen kvízt sem.",

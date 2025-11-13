@@ -1,6 +1,7 @@
 import ClassIcon from "@mui/icons-material/Class";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LogoutIcon from "@mui/icons-material/Logout";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import {
   AppBar,
   Box,
@@ -18,9 +19,9 @@ import {
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { LanguageSelector } from "@/shared/ui/LanguageSelector";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useAppDispatch } from "@/store/hooks";
+import { LanguageSelector } from "@/shared/ui/LanguageSelector";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/auth/slice";
 
 const DRAWER_WIDTH = 240;
@@ -37,6 +38,7 @@ interface TeacherLayoutProps {
 export function TeacherLayout({ children }: TeacherLayoutProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,7 +51,9 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
     if (path === "/teacher") {
       return location.pathname === "/teacher";
     }
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
   };
 
   return (
@@ -63,8 +67,14 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between", gap: 2 }}>
+          <MenuBookIcon />
           <Typography variant="h6">{t("teacher.dashboard.title")}</Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {user?.firstName && user?.lastName && (
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {`${user.firstName} ${user.lastName}`}
+              </Typography>
+            )}
             <LanguageSelector />
             <Button
               color="inherit"
@@ -92,10 +102,10 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
           <List>
             {menuItems.map((item) => (
               <ListItem key={item.path} disablePadding>
-                  <ListItemButton
-                    selected={isSelected(item.path)}
-                    onClick={() => navigate(item.path)}
-                  >
+                <ListItemButton
+                  selected={isSelected(item.path)}
+                  onClick={() => navigate(item.path)}
+                >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={t(`teacher.${item.labelKey}`)} />
                 </ListItemButton>

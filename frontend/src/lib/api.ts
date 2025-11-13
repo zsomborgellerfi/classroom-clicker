@@ -1,15 +1,21 @@
 import axios from "axios";
 
-import { store } from "../store";
-
 const api = axios.create({
   baseURL:
     (import.meta.env.VITE_API_URL as string) || "http://localhost:3000/api",
 });
 
+type TokenGetter = () => string | null;
+
+let getToken: TokenGetter | null = null;
+
+export const configureApiAuth = (tokenResolver: TokenGetter) => {
+  getToken = tokenResolver;
+};
+
 // Add request interceptor to include auth token
 api.interceptors.request.use((config) => {
-  const token = store.getState().auth.token;
+  const token = getToken?.();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -21,6 +27,7 @@ export const ENDPOINTS = {
   AUTH: {
     LOGIN: () => `/auth/login`,
     REGISTER: () => `/auth/register`,
+    ME: () => `/auth/me`,
   },
   CLASS: {
     LIST: () => `/teacher/classes`,
@@ -62,9 +69,11 @@ export const ENDPOINTS = {
       `/teacher/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}/responses`,
   },
   ADMIN: {
+    INSIGHTS: () => `/admin/insights`,
     USERS: {
       LIST: () => `/admin/users`,
       CREATE: () => `/admin/users`,
+      IMPORT: () => `/admin/users/import`,
       UPDATE: (userId: string) => `/admin/users/${userId}`,
       DELETE: (userId: string) => `/admin/users/${userId}`,
     },
@@ -80,7 +89,10 @@ export const ENDPOINTS = {
     },
     JOIN: () => `/student/classes/join`,
     PROGRESS: () => `/student/progress`,
+    DASHBOARD: () => `/student/dashboard`,
     QUIZ: {
+      GET: (classId: string, lessonId: string, quizId: string) =>
+        `/student/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}`,
       SUBMIT: (classId: string, lessonId: string, quizId: string) =>
         `/student/classes/${classId}/lessons/${lessonId}/quizzes/${quizId}/responses`,
     },

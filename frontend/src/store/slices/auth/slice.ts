@@ -1,5 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
+import type { User } from "@shared/types";
+
 import api, { ENDPOINTS } from "../../../lib/api";
 import type {
   AuthResponse,
@@ -27,6 +29,14 @@ export const register = createAsyncThunk<AuthResponse, RegisterCredentials>(
       ENDPOINTS.AUTH.REGISTER(),
       credentials,
     );
+    return data;
+  },
+);
+
+export const fetchCurrentUser = createAsyncThunk<User>(
+  "auth/me",
+  async () => {
+    const { data } = await api.get<User>(ENDPOINTS.AUTH.ME());
     return data;
   },
 );
@@ -107,6 +117,23 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Registration failed";
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        const rememberMe = localStorage.getItem("rememberMe") === "true";
+        const storage = rememberMe ? localStorage : sessionStorage;
+        storage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(fetchCurrentUser.rejected, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.error = "Session expired";
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
       });
   },
 });

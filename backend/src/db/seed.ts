@@ -32,7 +32,8 @@ async function main() {
     data: {
       email: process.env.ADMIN_EMAIL || "admin@example.com",
       password: hashedPassword,
-      name: "Admin User",
+      firstName: "Admin",
+      lastName: "User",
       role: UserRole.ADMIN,
     },
   });
@@ -42,7 +43,8 @@ async function main() {
     data: {
       email: "teacher@example.com",
       password: await bcrypt.hash("teacher123", 10),
-      name: "Sample Teacher",
+      firstName: "Sample",
+      lastName: "Teacher",
       role: UserRole.TEACHER,
     },
   });
@@ -52,7 +54,8 @@ async function main() {
     data: {
       email: "student1@example.com",
       password: await bcrypt.hash("student123", 10),
-      name: "Student One",
+      firstName: "Student",
+      lastName: "One",
       role: UserRole.STUDENT,
     },
   });
@@ -61,7 +64,8 @@ async function main() {
     data: {
       email: "student2@example.com",
       password: await bcrypt.hash("student123", 10),
-      name: "Student Two",
+      firstName: "Student",
+      lastName: "Two",
       role: UserRole.STUDENT,
     },
   });

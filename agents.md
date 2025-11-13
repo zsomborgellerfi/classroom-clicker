@@ -4,6 +4,7 @@
 - Keep multi-agent work aligned with the actual monorepo layout (`backend/`, `frontend/`, `shared/`, container scripts, and infra).
 - Capture the domain language (classes, lessons, quizzes, responses) defined in `backend/prisma/schema.prisma` and the REST surface in `backend/src/routes`.
 - Make it obvious where each agent hands off work so we do not duplicate efforts or drift from the TypeScript contracts shared with the React client.
+- Document the feature-first frontend structure (`src/features/**`, `src/shared/ui`, `@` alias) so pages stay thin and behavior moves into testable components/hooks.
 
 ## Product Snapshot
 - Web-based classroom clicker: teachers manage classes, lessons, and quizzes; students respond; admins manage users.
@@ -25,10 +26,12 @@
 - Backend: `npm run dev` (nodemon) / `npm run build` / `npm run seed`; Prisma CLI for schema migrations and seeding; environment via `.env` mirrored from `.env.example`.
 - Frontend: `npm run dev` (Vite), `npm run build`, `npm run lint`, `npm run format`.
 - Containers: `docker-compose up --build` wires backend, frontend, Postgres, pgAdmin, and nginx; per-service Dockerfiles live under `backend/` and `frontend/`.
+- Frontend aliasing: Vite + TS are configured with `@`→`src` and `@shared`→`../shared`; keep new feature code under `src/features/<domain>` and reusable UI in `src/shared/ui`.
 
 ## Collaboration Patterns
 - **Contracts first**: Any schema or DTO change propagates `shared/types/` → backend validators (`backend/src/schemas`) → frontend API hooks (`frontend/src/lib/api.ts`, RTK slices, React Query hooks).
-- **Auth-aware UX**: Role-based routing lives in `frontend/src/routes/ProtectedRoute.tsx` and `frontend/src/components/common/RoleRoute.tsx`; backend mirrors this with `authMiddleware` + `roleCheck`.
+- **Auth-aware UX**: Role-based routing lives in `frontend/src/routes/ProtectedRoute.tsx` and `src/shared/ui/RoleRoute.tsx`; backend mirrors this with `authMiddleware` + `roleCheck`.
+- **Componentization rule**: Pages under `src/features/*/pages` stay thin (data fetching + layout only). Move UI/logic into `src/features/*/components`, `src/features/*/hooks`, or `src/shared/ui` so responsibilities are testable and reusable.
 - **Testing expectations**: Backend uses Jest (`backend/package.json`), though suites are thin—QA agent should backfill; frontend relies on manual/React Query testing for now.
 - **Observability**: `/health` endpoint (`backend/src/app.ts`) is the lightweight liveness probe; additional metrics/logging are to be added by Platform/QA agents when needed.
 
@@ -59,17 +62,19 @@
 - **Quality Gates**: Add/refresh Jest + Supertest suites, ensure Prisma migrations are committed, keep consistent logging and status codes.
 
 ### 3. Frontend Experience Agent
-- **Mission**: Deliver role-aware UX in React, integrating cleanly with the REST API and shared models.
+- **Mission**: Deliver role-aware UX in React, integrating cleanly with the REST API and shared models while keeping feature pages lean.
 - **Key Responsibilities**:
-  - Manage routing (`frontend/src/App.tsx`) and guard logic (`ProtectedRoute`, `RoleRoute`).
-  - Compose dashboards (`frontend/src/pages/**`) and tables/forms under `frontend/src/components`.
-  - Coordinate state across Redux Toolkit (`frontend/src/store`) and React Query for server cache.
-  - Implement data fetching through `frontend/src/lib/api.ts`, honoring ENDPOINTS map.
-  - Maintain styling in `frontend/src/styles/main.scss` and `frontend/src/theme.ts`.
+  - Manage routing (`src/App.tsx`) and guard logic (`src/routes/ProtectedRoute.tsx`, `src/shared/ui/RoleRoute.tsx`).
+  - Structure code by feature (`src/features/<domain>/{pages,components,hooks}`) so pages compose dedicated components/services rather than housing business logic directly.
+  - Coordinate state across Redux Toolkit (`src/store`) and React Query (feature hooks), and surface shared UI via `src/shared/ui`.
+  - Implement data fetching through `src/lib/api.ts` or feature-level APIs, honoring ENDPOINTS map.
+  - Maintain styling in `src/styles/main.scss` and `src/theme.ts`.
 - **Hand-offs**:
   - Consumes shared types + API docs; feeds back UX constraints or missing endpoints to Backend Agent.
   - Provides QA Agent with interaction paths and feature flags for testing.
-- **Quality Gates**: Lint + format clean, strict TypeScript, accessible components, loading/error states for all queries/mutations, toast notifications for outcomes.
+- **Quality Gates**:
+  - Every feature page delegates logic to components/hooks; avoid “God pages.”
+  - Lint + format clean, strict TypeScript, accessible components, loading/error states for all queries/mutations, toast notifications for outcomes.
 
 ### 4. Shared Contracts Agent
 - **Mission**: Synchronize DTOs, enums, and validation schemas across `shared/`, backend, and frontend.

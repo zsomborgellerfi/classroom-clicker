@@ -34,7 +34,7 @@ export default function StudentQuiz() {
     queryKey: ["student-quiz", quizId],
     queryFn: async () => {
       const response = await api.get<Quiz>(
-        ENDPOINTS.QUIZ.GET(classId!, lessonId!, quizId!),
+        ENDPOINTS.STUDENT.QUIZ.GET(classId!, lessonId!, quizId!),
       );
       return response.data;
     },
