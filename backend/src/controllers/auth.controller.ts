@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { User } from "../types";
 import { AuthRequest } from "../types";
+import { sendPasswordResetEmail } from "../services/email.service";
 
 const prisma = new PrismaClient();
 
@@ -152,6 +153,16 @@ class AuthController {
             passwordResetExpires: expiresAt,
           },
         });
+
+        try {
+          await sendPasswordResetEmail({
+            to: user.email,
+            token: resetToken,
+            recipientName: `${user.firstName} ${user.lastName}`,
+          });
+        } catch (emailError) {
+          console.error("Failed to send password reset email:", emailError);
+        }
       }
 
       const responsePayload: Record<string, unknown> = {

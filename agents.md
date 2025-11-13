@@ -7,9 +7,9 @@
 - Document the feature-first frontend structure (`src/features/**`, `src/shared/ui`, `@` alias) so pages stay thin and behavior moves into testable components/hooks.
 
 ## Product Snapshot
-- Web-based classroom clicker: teachers manage classes, lessons, and quizzes; students respond; admins manage users.
-- Backend (`backend/`): Express + TypeScript + Prisma/PostgreSQL, JWT auth (`backend/src/app.ts`, `backend/src/middleware`), role-gated routers (`backend/src/routes`).
-- Frontend (`frontend/`): React 18 + Vite + Redux Toolkit + React Query + MUI (`frontend/src/App.tsx`, `frontend/src/store`).
+- Web-based classroom clicker: teachers manage classes, lessons, and quizzes; students respond in real time; admins manage users.
+- Backend (`backend/`): Express + TypeScript + Prisma/PostgreSQL, JWT auth (`backend/src/app.ts`, `backend/src/middleware`), password reset tokens, role-gated routers (`backend/src/routes`), and Socket.IO broadcasting (`backend/src/services/socket.service.ts`) for quiz activation + response updates.
+- Frontend (`frontend/`): React 18 + Vite + Redux Toolkit + React Query + MUI (`frontend/src/App.tsx`, `frontend/src/store`), with socket listeners for students/teachers and dedicated password reset pages (`/forgot-password`, `/reset-password`).
 - Shared contracts in `shared/types` keep models consistent between client and server builds.
 - Docker-first local orchestration via `docker-compose.yml`, with dev scripts (`dev.sh`, `dev-detached.sh`) bootstrapping services plus `nginx/` edge proxy and `pgadmin/`.
 
@@ -23,14 +23,16 @@
 | `Question`, `QuizOption`, `Response`, `QuizAnswer` | Maintain quiz content and student submissions; cascade deletes propagate through Prisma relations. |
 
 ## Toolchain & Commands
-- Backend: `npm run dev` (nodemon) / `npm run build` / `npm run seed`; Prisma CLI for schema migrations and seeding; environment via `.env` mirrored from `.env.example`.
-- Frontend: `npm run dev` (Vite), `npm run build`, `npm run lint`, `npm run format`.
+- Backend: `npm run dev` (nodemon) / `npm run build` / `npm run seed`; Prisma CLI for schema migrations (`npx prisma migrate deploy`) and generation; environment via `.env` mirrored from `.env.example`; use `npx tsc --noEmit` for type checks.
+- Frontend: `npm run dev` (Vite), `npm run build`; run `npx tsc --noEmit` to catch type errors until ESLint is configured.
 - Containers: `docker-compose up --build` wires backend, frontend, Postgres, pgAdmin, and nginx; per-service Dockerfiles live under `backend/` and `frontend/`.
 - Frontend aliasing: Vite + TS are configured with `@`→`src` and `@shared`→`../shared`; keep new feature code under `src/features/<domain>` and reusable UI in `src/shared/ui`.
 
 ## Collaboration Patterns
-- **Contracts first**: Any schema or DTO change propagates `shared/types/` → backend validators (`backend/src/schemas`) → frontend API hooks (`frontend/src/lib/api.ts`, RTK slices, React Query hooks).
+- **Contracts first**: Any schema/DTO change (REST or WebSocket payload) propagates `shared/types/` → backend validators (`backend/src/schemas`) → frontend API hooks (`frontend/src/lib/api.ts`, RTK slices, React Query hooks).
 - **Auth-aware UX**: Role-based routing lives in `frontend/src/routes/ProtectedRoute.tsx` and `src/shared/ui/RoleRoute.tsx`; backend mirrors this with `authMiddleware` + `roleCheck`.
+- **Password reset**: Tokens are issued via `/auth/password/forgot` (stored on the user record) and consumed via `/auth/password/reset`. In non-prod environments the token is logged/returned for dev convenience; production must rely on email delivery. Frontend pages live under `src/features/auth/pages`.
+- **Realtime**: Student-facing sockets listen for `quiz:activated`; teacher sockets listen for `quiz:responses-updated`. Any payload tweak must be reflected in both backend emitters and frontend listeners plus React Query invalidations.
 - **Componentization rule**: Pages under `src/features/*/pages` stay thin (data fetching + layout only). Move UI/logic into `src/features/*/components`, `src/features/*/hooks`, or `src/shared/ui` so responsibilities are testable and reusable.
 - **Testing expectations**: Backend uses Jest (`backend/package.json`), though suites are thin—QA agent should backfill; frontend relies on manual/React Query testing for now.
 - **Observability**: `/health` endpoint (`backend/src/app.ts`) is the lightweight liveness probe; additional metrics/logging are to be added by Platform/QA agents when needed.
@@ -54,8 +56,9 @@
   - Manage controllers/services/middleware under `backend/src` and keep `PrismaClient` usage efficient.
   - Extend routers (`backend/src/routes`) with versioned endpoints and role enforcement.
   - Implement validation layers via Zod schemas (`backend/src/schemas`) plus shared DTOs.
-  - Maintain JWT auth flows (`backend/src/controllers/auth.controller.ts`, `backend/src/middleware/auth.ts`) and password hashing (bcrypt).
+  - Maintain JWT auth flows (`backend/src/controllers/auth.controller.ts`, `backend/src/middleware/auth.ts`), password hashing (bcrypt), and password reset lifecycle (tokens, expirations, migrations).
   - Make sure migrations + seeds (`backend/src/db/seed.ts`) cover new models.
+  - Keep Socket.IO events (`backend/src/services/socket.service.ts`) aligned with student + teacher listeners (activation, response updates).
 - **Hand-offs**:
   - Publishes new API shapes to Shared Contracts Agent.
   - Provides REST examples and error envelopes to Frontend Agent for integration.
@@ -64,10 +67,10 @@
 ### 3. Frontend Experience Agent
 - **Mission**: Deliver role-aware UX in React, integrating cleanly with the REST API and shared models while keeping feature pages lean.
 - **Key Responsibilities**:
-  - Manage routing (`src/App.tsx`) and guard logic (`src/routes/ProtectedRoute.tsx`, `src/shared/ui/RoleRoute.tsx`).
+  - Manage routing (`src/App.tsx`) and guard logic (`src/routes/ProtectedRoute.tsx`, `src/shared/ui/RoleRoute.tsx`) plus auth adjunct flows (`/forgot-password`, `/reset-password`).
   - Structure code by feature (`src/features/<domain>/{pages,components,hooks}`) so pages compose dedicated components/services rather than housing business logic directly.
   - Coordinate state across Redux Toolkit (`src/store`) and React Query (feature hooks), and surface shared UI via `src/shared/ui`.
-  - Implement data fetching through `src/lib/api.ts` or feature-level APIs, honoring ENDPOINTS map.
+  - Implement data fetching through `src/lib/api.ts` or feature-level APIs, honoring ENDPOINTS map; subscribe to socket events where needed and invalidate React Query caches accordingly.
   - Maintain styling in `src/styles/main.scss` and `src/theme.ts`.
 - **Hand-offs**:
   - Consumes shared types + API docs; feeds back UX constraints or missing endpoints to Backend Agent.
@@ -90,6 +93,7 @@
 - **Key Responsibilities**:
   - Expand Jest coverage in backend, add Playwright/Cypress (future) for critical flows, and ensure CI runs lint + tests + builds.
   - Define manual regression checklists (auth, teacher workflows, admin user edits) until automation exists.
+  - Verify password reset flows (request + reset) and socket-driven UI updates for both teacher and student dashboards.
   - Monitor `/health` and add deeper telemetry/logging strategies (request IDs, structured logs).
   - Own release tagging, Docker image validation, and smoke tests against docker-compose environments.
 - **Hand-offs**:
