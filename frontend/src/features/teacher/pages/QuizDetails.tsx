@@ -7,6 +7,7 @@ import {
   Chip,
   Grid,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -15,11 +16,13 @@ import {
   TableRow,
   TableSortLabel,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 import { Quiz, StudentResponse } from "@shared/types";
 
@@ -37,6 +40,8 @@ export function QuizDetails() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAppSelector((state) => state.auth);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const { data: quiz } = useQuery<Quiz>({
     queryKey: ["quiz", quizId],
@@ -341,7 +346,14 @@ export function QuizDetails() {
           <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
             {t("teacher.quizzes.title")}
           </Typography>
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              flexWrap: "wrap",
+              justifyContent: { xs: "flex-start", md: "flex-end" },
+            }}
+          >
             {!quiz.isActive && canEdit && (
               <Button
                 variant="contained"
@@ -473,53 +485,74 @@ export function QuizDetails() {
         <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
           {t("teacher.quizzes.individualResponses")}
         </Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === "name"}
-                    direction={orderBy === "name" ? order : "asc"}
-                    onClick={() => handleSort("name")}
-                  >
-                    {t("teacher.quizzes.student")}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === "score"}
-                    direction={orderBy === "score" ? order : "asc"}
-                    onClick={() => handleSort("score")}
-                  >
-                    {t("teacher.quizzes.score")}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === "submittedAt"}
-                    direction={orderBy === "submittedAt" ? order : "asc"}
-                    onClick={() => handleSort("submittedAt")}
-                  >
-                    {t("teacher.quizzes.submittedAt")}
-                  </TableSortLabel>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {responses &&
-                sortResponses(responses).map((response) => (
-                  <TableRow key={response.id}>
-                    <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
-                    <TableCell>{`${Math.min(100, Math.round(Math.min(response.score, 1) * 100))}%`}</TableCell>
-                    <TableCell>
-                      {new Date(response.submittedAt).toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {isMobile ? (
+          <Stack spacing={2}>
+            {responses &&
+              sortResponses(responses).map((response) => (
+                <Paper key={response.id} sx={{ p: 2 }}>
+                  <Typography variant="subtitle1">
+                    {`${response.user.firstName} ${response.user.lastName}`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t("teacher.quizzes.score")}:{" "}
+                    {`${Math.min(100, Math.round(Math.min(response.score, 1) * 100))}%`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t("teacher.quizzes.submittedAt")}:{" "}
+                    {new Date(response.submittedAt).toLocaleString()}
+                  </Typography>
+                </Paper>
+              ))}
+          </Stack>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === "name"}
+                      direction={orderBy === "name" ? order : "asc"}
+                      onClick={() => handleSort("name")}
+                    >
+                      {t("teacher.quizzes.student")}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === "score"}
+                      direction={orderBy === "score" ? order : "asc"}
+                      onClick={() => handleSort("score")}
+                    >
+                      {t("teacher.quizzes.score")}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === "submittedAt"}
+                      direction={orderBy === "submittedAt" ? order : "asc"}
+                      onClick={() => handleSort("submittedAt")}
+                    >
+                      {t("teacher.quizzes.submittedAt")}
+                    </TableSortLabel>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {responses &&
+                  sortResponses(responses).map((response) => (
+                    <TableRow key={response.id}>
+                      <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
+                      <TableCell>{`${Math.min(100, Math.round(Math.min(response.score, 1) * 100))}%`}</TableCell>
+                      <TableCell>
+                        {new Date(response.submittedAt).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Box>
 
       <QuizFormDialog

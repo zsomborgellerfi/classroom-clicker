@@ -2,9 +2,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PreviewIcon from "@mui/icons-material/Preview";
 import {
+  Box,
+  Button,
   Chip,
   IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -13,9 +16,11 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 import { Quiz } from "@shared/types";
 
@@ -40,6 +45,8 @@ export function QuizTable({
 }: QuizTableProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const { data: quizzes, isLoading } = useQuery<QuizResponse>({
     queryKey: ["quizzes", lessonId],
@@ -57,6 +64,98 @@ export function QuizTable({
 
   if (!quizzes?.length) {
     return <Typography>{t("teacher.quizzes.empty")}</Typography>;
+  }
+
+  if (isMobile) {
+    return (
+      <Stack spacing={2}>
+        {quizzes.map((quiz) => (
+          <Paper key={quiz.id} sx={{ p: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 1,
+                mb: 1,
+              }}
+            >
+              <Typography variant="h6">{quiz.title}</Typography>
+              <Chip
+                label={
+                  quiz.isActive
+                    ? t("teacher.quizzes.table.active")
+                    : t("teacher.quizzes.table.inactive")
+                }
+                color={quiz.isActive ? "success" : "default"}
+                size="small"
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              {t("teacher.quizzes.table.questions")}:{" "}
+              {quiz._count?.questions ?? 0} ·{" "}
+              {t("teacher.quizzes.table.responses")}:{" "}
+              {quiz._count?.responses ?? 0}
+            </Typography>
+            <Box sx={{ mt: 1, display: "grid", gap: 0.5 }}>
+              <Typography variant="body2">
+                {quiz.attemptLimit
+                  ? t("teacher.quizzes.table.attemptsLabel", {
+                      count: quiz.attemptLimit,
+                    })
+                  : t("teacher.quizzes.table.attemptsUnlimited")}
+              </Typography>
+              <Typography variant="body2">
+                {quiz.timeLimitSeconds
+                  ? t("teacher.quizzes.table.timeLimitValue", {
+                      minutes: Math.round((quiz.timeLimitSeconds ?? 0) / 60),
+                    })
+                  : t("teacher.quizzes.table.timeLimitNone")}
+              </Typography>
+              <Typography variant="body2">
+                {quiz.availableUntil
+                  ? t("teacher.quizzes.table.deadlineValue", {
+                      value: new Date(quiz.availableUntil).toLocaleString(),
+                    })
+                  : t("teacher.quizzes.table.deadlineNone")}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 2 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<PreviewIcon />}
+                onClick={() =>
+                  navigate(
+                    `/teacher/classes/${classId}/lessons/${lessonId}/quizzes/${quiz.id}`,
+                  )
+                }
+              >
+                {t("teacher.quizzes.actions.view")}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<EditIcon />}
+                onClick={() => onEdit(quiz)}
+              >
+                {t("teacher.quizzes.actions.edit")}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => onDelete(quiz)}
+              >
+                {t("teacher.quizzes.actions.delete")}
+              </Button>
+            </Box>
+          </Paper>
+        ))}
+      </Stack>
+    );
   }
 
   return (

@@ -27,11 +27,13 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 import { ClassInvite } from "@shared/types";
 
@@ -72,6 +74,8 @@ export default function StudentManagement() {
   const { t } = useTranslation();
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [studentSearchDebounced, setStudentSearchDebounced] = useState("");
@@ -428,107 +432,179 @@ export default function StudentManagement() {
         </Box>
 
         {classData?.students?.length ? (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      indeterminate={
-                        studentsToRemove.size > 0 &&
-                        studentsToRemove.size < classData.students.length
-                      }
-                      checked={
-                        classData.students.length > 0 &&
-                        studentsToRemove.size === classData.students.length
-                      }
-                      onChange={() => {
-                        if (
-                          studentsToRemove.size === classData.students.length
-                        ) {
-                          setStudentsToRemove(new Set());
-                        } else {
-                          setStudentsToRemove(
-                            new Set(classData.students.map((s) => s.id)),
-                          );
-                        }
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={studentOrderBy === "firstName"}
-                      direction={
-                        studentOrderBy === "firstName" ? studentOrder : "asc"
-                      }
-                      onClick={() => handleStudentSort("firstName")}
-                    >
-                      {t("teacher.classes.students.table.firstName")}
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={studentOrderBy === "lastName"}
-                      direction={
-                        studentOrderBy === "lastName" ? studentOrder : "asc"
-                      }
-                      onClick={() => handleStudentSort("lastName")}
-                    >
-                      {t("teacher.classes.students.table.lastName")}
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={studentOrderBy === "email"}
-                      direction={
-                        studentOrderBy === "email" ? studentOrder : "asc"
-                      }
-                      onClick={() => handleStudentSort("email")}
-                    >
-                      {t("teacher.classes.students.table.email")}
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell align="right">
-                    {t("teacher.classes.students.table.actions")}
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortStudents(classData.students).map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={studentsToRemove.has(student.id)}
-                        onChange={() => handleToggleStudentRemove(student.id)}
-                      />
-                    </TableCell>
-                    <TableCell>
+          isMobile ? (
+            <Box sx={{ display: "grid", gap: 2 }}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    if (studentsToRemove.size === classData.students.length) {
+                      setStudentsToRemove(new Set());
+                    } else {
+                      setStudentsToRemove(
+                        new Set(classData.students.map((s) => s.id)),
+                      );
+                    }
+                  }}
+                >
+                  {studentsToRemove.size === classData.students.length
+                    ? t("teacher.classes.students.deselectAll")
+                    : t("teacher.classes.students.selectAll")}
+                </Button>
+              </Box>
+              {sortStudents(classData.students).map((student) => (
+                <Paper key={student.id} sx={{ p: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 2,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Box>
                       <Button
                         variant="text"
                         onClick={() => setViewingStudentId(student.id)}
-                        sx={{ textTransform: "none", p: 0, minWidth: "auto" }}
+                        sx={{
+                          textTransform: "none",
+                          p: 0,
+                          minWidth: "auto",
+                          fontSize: "1rem",
+                        }}
                       >
-                        {student.firstName}
+                        {`${student.firstName} ${student.lastName}`}
                       </Button>
+                      <Typography variant="body2" color="text.secondary">
+                        {student.email}
+                      </Typography>
+                    </Box>
+                    <Checkbox
+                      checked={studentsToRemove.has(student.id)}
+                      onChange={() => handleToggleStudentRemove(student.id)}
+                    />
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 1, mt: 2, flexWrap: "wrap" }}>
+                    <Button
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      startIcon={<DeleteIcon fontSize="small" />}
+                      onClick={() => setStudentToRemove(student)}
+                    >
+                      {t("teacher.classes.students.remove")}
+                    </Button>
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        indeterminate={
+                          studentsToRemove.size > 0 &&
+                          studentsToRemove.size < classData.students.length
+                        }
+                        checked={
+                          classData.students.length > 0 &&
+                          studentsToRemove.size === classData.students.length
+                        }
+                        onChange={() => {
+                          if (
+                            studentsToRemove.size === classData.students.length
+                          ) {
+                            setStudentsToRemove(new Set());
+                          } else {
+                            setStudentsToRemove(
+                              new Set(classData.students.map((s) => s.id)),
+                            );
+                          }
+                        }}
+                      />
                     </TableCell>
-                    <TableCell>{student.lastName}</TableCell>
-                    <TableCell>{student.email}</TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={studentOrderBy === "firstName"}
+                        direction={
+                          studentOrderBy === "firstName" ? studentOrder : "asc"
+                        }
+                        onClick={() => handleStudentSort("firstName")}
+                      >
+                        {t("teacher.classes.students.table.firstName")}
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={studentOrderBy === "lastName"}
+                        direction={
+                          studentOrderBy === "lastName" ? studentOrder : "asc"
+                        }
+                        onClick={() => handleStudentSort("lastName")}
+                      >
+                        {t("teacher.classes.students.table.lastName")}
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={studentOrderBy === "email"}
+                        direction={
+                          studentOrderBy === "email" ? studentOrder : "asc"
+                        }
+                        onClick={() => handleStudentSort("email")}
+                      >
+                        {t("teacher.classes.students.table.email")}
+                      </TableSortLabel>
+                    </TableCell>
                     <TableCell align="right">
-                      <Tooltip title={t("teacher.classes.students.remove")}>
-                        <IconButton
-                          color="error"
-                          size="small"
-                          onClick={() => setStudentToRemove(student)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {t("teacher.classes.students.table.actions")}
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {sortStudents(classData.students).map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={studentsToRemove.has(student.id)}
+                          onChange={() => handleToggleStudentRemove(student.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="text"
+                          onClick={() => setViewingStudentId(student.id)}
+                          sx={{
+                            textTransform: "none",
+                            p: 0,
+                            minWidth: "auto",
+                          }}
+                        >
+                          {student.firstName}
+                        </Button>
+                      </TableCell>
+                      <TableCell>{student.lastName}</TableCell>
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell align="right">
+                        <Tooltip title={t("teacher.classes.students.remove")}>
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => setStudentToRemove(student)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )
         ) : (
           <Box sx={{ textAlign: "center", py: 4 }}>
             <Typography color="text.secondary" variant="h6" gutterBottom>
@@ -552,7 +628,9 @@ export default function StudentManagement() {
             display: "flex",
             justifyContent: "space-between",
             mb: 2,
-            alignItems: "center",
+            alignItems: { xs: "stretch", md: "center" },
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
           }}
         >
           <Typography variant="h5">
@@ -561,6 +639,7 @@ export default function StudentManagement() {
           <Button
             variant="outlined"
             onClick={() => setIsInviteDialogOpen(true)}
+            sx={{ alignSelf: { xs: "flex-start", md: "flex-end" } }}
           >
             {t("teacher.classes.invites.createButton")}
           </Button>
@@ -620,6 +699,68 @@ export default function StudentManagement() {
           </Box>
         )}
       </Box>
+
+      {/* Invite Dialog */}
+      <Dialog
+        open={isInviteDialogOpen}
+        onClose={() => {
+          setIsInviteDialogOpen(false);
+          setInviteForm({ maxUses: "", expiresInHours: "48" });
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>{t("teacher.classes.invites.createTitle")}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label={t("teacher.classes.invites.maxUses")}
+            fullWidth
+            margin="normal"
+            type="number"
+            value={inviteForm.maxUses}
+            onChange={(event) =>
+              setInviteForm((prev) => ({
+                ...prev,
+                maxUses: event.target.value,
+              }))
+            }
+            helperText={t("teacher.classes.invites.optional")}
+          />
+          <TextField
+            label={t("teacher.classes.invites.expiresInHours")}
+            fullWidth
+            margin="normal"
+            type="number"
+            value={inviteForm.expiresInHours}
+            onChange={(event) =>
+              setInviteForm((prev) => ({
+                ...prev,
+                expiresInHours: event.target.value,
+              }))
+            }
+            helperText={t("teacher.classes.invites.expiresHelp")}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setIsInviteDialogOpen(false);
+              setInviteForm({ maxUses: "", expiresInHours: "48" });
+            }}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCreateInvite}
+            disabled={createInviteMutation.isPending}
+          >
+            {createInviteMutation.isPending
+              ? t("common.loading")
+              : t("teacher.classes.invites.createButton")}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Assign Student Dialog */}
       <Dialog
@@ -746,10 +887,10 @@ export default function StudentManagement() {
             : "",
         })}
         onConfirm={handleRemoveStudent}
-        onCancel={() => setStudentToRemove(null)}
+        onClose={() => setStudentToRemove(null)}
         confirmText={t("common.confirm")}
         cancelText={t("common.cancel")}
-        confirmColor="error"
+        severity="error"
       />
 
       {/* Student Details Modal */}

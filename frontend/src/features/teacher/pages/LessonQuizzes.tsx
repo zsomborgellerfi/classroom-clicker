@@ -93,11 +93,21 @@ export default function LessonQuizzes() {
   return (
     <TeacherLayout>
       <Breadcrumbs items={breadcrumbItems} />
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mb: 3,
+          gap: 2,
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: { xs: "stretch", md: "center" },
+        }}
+      >
         <Typography variant="h4">{lessonData?.title}</Typography>
         <Button
           variant="contained"
           onClick={() => setIsCreateQuizDialogOpen(true)}
+          sx={{ alignSelf: { xs: "flex-start", md: "flex-end" } }}
         >
           {t("teacher.quizzes.create.button")}
         </Button>

@@ -118,7 +118,9 @@ export default function ClassDetails() {
             display: "flex",
             justifyContent: "space-between",
             mb: 2,
-            alignItems: "center",
+            alignItems: { xs: "stretch", md: "center" },
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
           }}
         >
           <Typography variant="h5">
@@ -138,6 +140,7 @@ export default function ClassDetails() {
             variant="contained"
             startIcon={<PeopleIcon />}
             onClick={() => navigate(`/teacher/classes/${classId}/students`)}
+            sx={{ alignSelf: { xs: "flex-start", md: "flex-end" } }}
           >
             {t("teacher.classes.actions.manageStudents")}
           </Button>
@@ -191,13 +194,16 @@ export default function ClassDetails() {
             display: "flex",
             justifyContent: "space-between",
             mb: 2,
-            alignItems: "center",
+            alignItems: { xs: "stretch", md: "center" },
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
           }}
         >
           <Typography variant="h5">{t("teacher.lessons.title")}</Typography>
           <Button
             variant="contained"
             onClick={() => setIsCreateDialogOpen(true)}
+            sx={{ alignSelf: { xs: "flex-start", md: "flex-end" } }}
           >
             {t("teacher.lessons.create.button")}
           </Button>

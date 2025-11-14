@@ -1,5 +1,6 @@
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LogoutIcon from "@mui/icons-material/Logout";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import PeopleIcon from "@mui/icons-material/People";
 import {
   AppBar,
@@ -17,9 +18,9 @@ import {
 } from "@mui/material";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSelector } from "@/shared/ui/LanguageSelector";
 import { ThemeSwitcher } from "@/shared/ui/ThemeSwitcher";
-import { useTranslation } from "@/hooks/useTranslation";
 import { useAppDispatch } from "@/store/hooks";
 import { logout } from "@/store/slices/auth/slice";
 
@@ -56,7 +57,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between", gap: 2 }}>
-          <Typography variant="h6">{t("admin.dashboard.title")}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <MenuBookIcon />
+            <Typography variant="h6">{t("common.appName")}</Typography>
+          </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <ThemeSwitcher />
             <LanguageSelector />

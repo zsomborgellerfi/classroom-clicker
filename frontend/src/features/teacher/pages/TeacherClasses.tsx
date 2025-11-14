@@ -47,12 +47,22 @@ export default function TeacherClasses() {
 
   return (
     <TeacherLayout>
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+      <Box sx={{ p: { xs: 1, md: 3 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            mb: 3,
+            gap: 2,
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "stretch", md: "center" },
+          }}
+        >
           <Typography variant="h4">{t("teacher.classes.title")}</Typography>
           <Button
             variant="contained"
             onClick={() => setIsCreateDialogOpen(true)}
+            sx={{ alignSelf: { xs: "flex-start", md: "flex-end" } }}
           >
             {t("teacher.classes.create.button")}
           </Button>

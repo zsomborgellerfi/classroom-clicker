@@ -618,6 +618,7 @@ export const en = {
     required: "This field is required",
   },
   common: {
+    appName: "Classroom Clicker",
     cancel: "Cancel",
     confirm: "Confirm",
     delete: "Delete",

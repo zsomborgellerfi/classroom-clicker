@@ -14,10 +14,12 @@ import {
   TableHead,
   TableRow,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 import { useTranslation } from "@/hooks/useTranslation";
 import { TeacherLayout } from "@/layouts/TeacherLayout";
@@ -44,6 +46,8 @@ export default function ClassProgress() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { classId } = useParams<{ classId: string }>();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const { data: classInfo } = useQuery({
     queryKey: ["class", classId],
@@ -177,6 +181,33 @@ export default function ClassProgress() {
                 <Typography color="text.secondary">
                   {t("teacher.classes.progress.empty")}
                 </Typography>
+              ) : isMobile ? (
+                <Box sx={{ display: "grid", gap: 1 }}>
+                  {studentStats.map((stat) => (
+                    <Paper key={stat.id} sx={{ p: 2 }}>
+                      <Typography variant="subtitle1">{stat.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {stat.email}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        {t("teacher.classes.progress.table.attempts")}:{" "}
+                        {stat.attempts}
+                      </Typography>
+                      <Typography variant="body2">
+                        {t("teacher.classes.progress.table.averageScore")}:{" "}
+                        {Math.min(
+                          100,
+                          Math.round(Math.min(stat.avgScore, 1) * 100),
+                        )}
+                        %
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {t("teacher.classes.progress.table.lastSubmitted")}:{" "}
+                        {new Date(stat.lastSubmittedAt).toLocaleString()}
+                      </Typography>
+                    </Paper>
+                  ))}
+                </Box>
               ) : (
                 <TableContainer component={Paper} variant="outlined">
                   <Table size="small">
@@ -237,44 +268,71 @@ export default function ClassProgress() {
                 >
                   {t("teacher.classes.progress.recentSubmissionsDescription")}
                 </Typography>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>
-                          {t("teacher.classes.progress.table.quiz")}
-                        </TableCell>
-                        <TableCell>
-                          {t("teacher.classes.progress.table.student")}
-                        </TableCell>
-                        <TableCell align="right">
-                          {t("teacher.classes.progress.table.score")}
-                        </TableCell>
-                        <TableCell>
-                          {t("teacher.classes.progress.table.submittedAt")}
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {responses.slice(0, 10).map((response) => (
-                        <TableRow key={response.id}>
-                          <TableCell>{response.quiz.title}</TableCell>
-                          <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
-                          <TableCell align="right">
-                            {Math.min(
-                              100,
-                              Math.round(Math.min(response.score, 1) * 100),
-                            )}
-                            %
+                {isMobile ? (
+                  <Box sx={{ display: "grid", gap: 1 }}>
+                    {responses.slice(0, 10).map((response) => (
+                      <Paper key={response.id} sx={{ p: 2 }}>
+                        <Typography variant="subtitle1">
+                          {response.quiz.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {`${response.user.firstName} ${response.user.lastName}`}
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          {t("teacher.classes.progress.table.score")}:{" "}
+                          {Math.min(
+                            100,
+                            Math.round(Math.min(response.score, 1) * 100),
+                          )}
+                          %
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t("teacher.classes.progress.table.submittedAt")}:{" "}
+                          {new Date(response.submittedAt).toLocaleString()}
+                        </Typography>
+                      </Paper>
+                    ))}
+                  </Box>
+                ) : (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>
+                            {t("teacher.classes.progress.table.quiz")}
                           </TableCell>
                           <TableCell>
-                            {new Date(response.submittedAt).toLocaleString()}
+                            {t("teacher.classes.progress.table.student")}
+                          </TableCell>
+                          <TableCell align="right">
+                            {t("teacher.classes.progress.table.score")}
+                          </TableCell>
+                          <TableCell>
+                            {t("teacher.classes.progress.table.submittedAt")}
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {responses.slice(0, 10).map((response) => (
+                          <TableRow key={response.id}>
+                            <TableCell>{response.quiz.title}</TableCell>
+                            <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
+                            <TableCell align="right">
+                              {Math.min(
+                                100,
+                                Math.round(Math.min(response.score, 1) * 100),
+                              )}
+                              %
+                            </TableCell>
+                            <TableCell>
+                              {new Date(response.submittedAt).toLocaleString()}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
               </CardContent>
             </Card>
           )}

@@ -2,8 +2,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
+  Box,
+  Button,
+  Chip,
   IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -12,9 +16,11 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 import { useTranslation } from "@/hooks/useTranslation";
 import api from "@/lib/api";
@@ -40,6 +46,8 @@ interface ClassTableProps {
 export function ClassTable({ onEdit, onDelete }: ClassTableProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const { data: classes, isLoading } = useQuery<ClassesResponse>({
     queryKey: ["classes"],
@@ -52,6 +60,67 @@ export function ClassTable({ onEdit, onDelete }: ClassTableProps) {
   if (isLoading) return <Typography>{t("common.loading")}</Typography>;
   if (!classes?.length)
     return <Typography>{t("teacher.classes.empty")}</Typography>;
+
+  if (isMobile) {
+    return (
+      <Stack spacing={2}>
+        {classes.map((classData) => (
+          <Paper key={classData.id} sx={{ p: 2 }}>
+            <Typography variant="h6">{classData.name}</Typography>
+            {classData.description && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {classData.description}
+              </Typography>
+            )}
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
+              <Chip
+                label={`${classData._count.students} ${t("teacher.classes.table.students")}`}
+                size="small"
+              />
+              <Chip
+                label={`${classData._count.lessons} ${t("teacher.classes.table.lessons")}`}
+                size="small"
+              />
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                flexWrap: "wrap",
+                justifyContent: "flex-start",
+              }}
+            >
+              <Button
+                startIcon={<VisibilityIcon />}
+                size="small"
+                variant="outlined"
+                onClick={() => navigate(`/teacher/classes/${classData.id}`)}
+              >
+                {t("teacher.classes.actions.view")}
+              </Button>
+              <Button
+                startIcon={<EditIcon />}
+                size="small"
+                variant="outlined"
+                onClick={() => onEdit(classData)}
+              >
+                {t("teacher.classes.actions.edit")}
+              </Button>
+              <Button
+                startIcon={<DeleteIcon />}
+                size="small"
+                color="error"
+                variant="outlined"
+                onClick={() => onDelete(classData)}
+              >
+                {t("teacher.classes.actions.delete")}
+              </Button>
+            </Box>
+          </Paper>
+        ))}
+      </Stack>
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
