@@ -192,6 +192,7 @@ export const hu: Translations = {
         edit: "Kurzus szerkesztése",
         delete: "Kurzus törlése",
         viewProgress: "Előrehaladás megtekintése",
+        manageStudents: "Diákok kezelése",
       },
       delete: {
         title: "Kurzus törlése",
@@ -209,6 +210,10 @@ export const hu: Translations = {
       students: {
         title: "Beiratkozott diákok",
         empty: "Ehhez a kurzushoz még nem rendeltek diákot.",
+        description:
+          "Kezeld a diákok beiratkozását, tekintsd meg az előrehaladásukat és exportáld a jelentkezőket.",
+        quickView:
+          "{{count}} diák beiratkozva. A részletek megtekintéséhez és a beiratkozás kezeléséhez kattints a 'Diákok kezelése' gombra.",
         add: "Diák hozzárendelése",
         selectLabel: "Válassz egy diákot",
         searchLabel: "Diákok keresése",
@@ -256,21 +261,21 @@ export const hu: Translations = {
         },
       },
       invites: {
-        title: "Meghívó linkek",
-        createButton: "Meghívó létrehozása",
-        createTitle: "Új meghívó generálása",
+        title: "Meghívó kódok",
+        createButton: "Meghívó kód létrehozása",
+        createTitle: "Új meghívó kód generálása",
         maxUses: "Felhasználások száma",
         expiresInHours: "Lejár (órában)",
         expiresHelp: "Hagyd üresen az alapértelmezett 48 órás lejárathoz",
         optional: "Nem kötelező",
-        empty: "Még nincs meghívó link.",
-        success: "Meghívó sikeresen létrehozva",
-        deleteSuccess: "Meghívó törölve",
-        error: "A meghívó kezelése nem sikerült",
+        empty: "Még nincs meghívó kód.",
+        success: "Meghívó kód sikeresen létrehozva",
+        deleteSuccess: "Meghívó kód törölve",
+        error: "A meghívó kód kezelése nem sikerült",
         copySuccess: "Meghívó kód másolva",
         copyError: "Nem sikerült a kód másolása",
         copyCode: "Kód másolása",
-        delete: "Meghívó törlése",
+        delete: "Meghívó kód törlése",
         uses: "Felhasználások: {{used}} / {{max}}",
         unlimited: "Korlátlan",
         noExpiry: "Nincs lejárat",
@@ -300,6 +305,7 @@ export const hu: Translations = {
       },
     },
     lessons: {
+      title: "Leckék",
       create: {
         title: "Új lecke létrehozása",
         button: "Lecke létrehozása",
@@ -307,7 +313,7 @@ export const hu: Translations = {
         success: "A lecke sikeresen létrejött",
         error: "A lecke létrehozása nem sikerült",
       },
-      title: {
+      titleInput: {
         label: "Lecke címe",
         min: "A cím legalább 2 karakter legyen",
       },
@@ -601,6 +607,14 @@ export const hu: Translations = {
       score: "Pontszám",
       error: "Nem sikerült betölteni az előrehaladást.",
       empty: "Még nem küldtél be egyetlen kvízt sem.",
+      classStats: "{{quizzes}} kvíz · {{average}}% átlag",
+      bestScore: "Legjobb: {{score}}%",
+      attempts: "{{count}} próbálkozás",
+      attempts_plural: "{{count}} próbálkozás",
+      canRetake: "Újra kitölthető",
+      retake: "Újra kitöltés",
+      review: "Áttekintés",
+      progressOverTime: "Előrehaladás próbálkozások szerint:",
     },
   },
   validation: {

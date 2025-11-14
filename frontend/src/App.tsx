@@ -22,6 +22,7 @@ import ClassDetails from "@/features/teacher/pages/ClassDetails";
 import ClassProgress from "@/features/teacher/pages/ClassProgress";
 import LessonQuizzes from "@/features/teacher/pages/LessonQuizzes";
 import { QuizDetails } from "@/features/teacher/pages/QuizDetails";
+import StudentManagement from "@/features/teacher/pages/StudentManagement";
 import TeacherClasses from "@/features/teacher/pages/TeacherClasses";
 import TeacherDashboard from "@/features/teacher/pages/TeacherDashboard";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
@@ -56,6 +57,10 @@ function App() {
               <Route
                 path="/teacher/classes/:classId/progress"
                 element={<ClassProgress />}
+              />
+              <Route
+                path="/teacher/classes/:classId/students"
+                element={<StudentManagement />}
               />
               <Route
                 path="/teacher/classes/:classId/lessons/:lessonId/quizzes"

@@ -115,7 +115,7 @@ export function LessonFormDialog({
         <DialogContent>
           <TextField
             {...register("title")}
-            label={t("teacher.lessons.title.label")}
+            label={t("teacher.lessons.titleInput.label")}
             error={!!errors.title}
             helperText={errors.title?.message}
             fullWidth

@@ -649,6 +649,11 @@ class ClassController {
             select: {
               id: true,
               title: true,
+              attemptLimit: true,
+              isActive: true,
+              availableUntil: true,
+              timeLimitSeconds: true,
+              activatedAt: true,
               lesson: {
                 select: {
                   id: true,
@@ -791,8 +796,8 @@ class ClassController {
         },
       });
 
-      // Get student's responses for quizzes in this class
-      const responses = await prisma.response.findMany({
+      // Get ALL student's responses for quizzes in this class (for accurate stats)
+      const allResponses = await prisma.response.findMany({
         where: {
           userId: studentId,
           quiz: {
@@ -812,18 +817,41 @@ class ClassController {
         orderBy: {
           submittedAt: "desc",
         },
-        take: 10, // Recent 10 responses
       });
+
+      // Get recent 10 responses for display
+      const recentResponses = allResponses.slice(0, 10);
 
       // Calculate stats
       const totalQuizzes = classQuizzes.length;
-      const completedQuizzes = new Set(responses.map((r) => r.quizId)).size;
+      const completedQuizzes = new Set(allResponses.map((r) => r.quizId)).size;
+
+      // Calculate average score by averaging quiz-level averages (not all responses)
+      // This ensures each quiz counts equally regardless of number of attempts
+      const quizScoreMap = new Map<string, number[]>();
+      for (const response of allResponses) {
+        const cappedScore = Math.min(response.score, 1.0); // Cap at 100%
+        const existing = quizScoreMap.get(response.quizId) || [];
+        existing.push(cappedScore);
+        quizScoreMap.set(response.quizId, existing);
+      }
+
+      const quizAverages: number[] = [];
+      for (const [quizId, scores] of quizScoreMap.entries()) {
+        if (scores.length > 0) {
+          const quizAverage =
+            scores.reduce((sum, s) => sum + s, 0) / scores.length;
+          quizAverages.push(quizAverage);
+        }
+      }
+
       const averageScore =
-        responses.length > 0
-          ? responses.reduce((sum, r) => sum + r.score, 0) / responses.length
+        quizAverages.length > 0
+          ? quizAverages.reduce((sum, s) => sum + s, 0) / quizAverages.length
           : 0;
+
       const lastActivity =
-        responses.length > 0 ? responses[0].submittedAt : null;
+        allResponses.length > 0 ? allResponses[0].submittedAt : null;
 
       res.json({
         student,
@@ -833,7 +861,7 @@ class ClassController {
           averageScore,
           lastActivity,
         },
-        recentResponses: responses,
+        recentResponses: recentResponses,
       });
     } catch (error) {
       console.error("Error fetching student details:", error);

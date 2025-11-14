@@ -40,7 +40,9 @@ async function main() {
     return;
   }
 
-  console.log("Seeding database with demo users, classes, lessons and quizzes…");
+  console.log(
+    "Seeding database with demo users, classes, lessons and quizzes…",
+  );
 
   const hashedPassword = await bcrypt.hash(
     process.env.ADMIN_PASSWORD || "test",
@@ -216,10 +218,12 @@ async function main() {
             create: response.answers.map((answer) => {
               const question = quiz.questions[answer.questionIndex];
               const desiredOptionText =
-                questions[answer.questionIndex].options[answer.optionIndex].text;
+                questions[answer.questionIndex].options[answer.optionIndex]
+                  .text;
               const option =
-                question.options.find((opt) => opt.text === desiredOptionText) ||
-                question.options[0];
+                question.options.find(
+                  (opt) => opt.text === desiredOptionText,
+                ) || question.options[0];
               return {
                 questionId: question.id,
                 selectedOptionId: option.id,
@@ -237,7 +241,7 @@ async function main() {
     isActive: true,
     attemptLimit: 1,
     timeLimitSeconds: 600,
-    availableUntil: minutesFromNow(120),
+    availableUntil: minutesFromNow(720),
     questions: [
       {
         text: "Which element best represents a navigation menu?",
@@ -262,7 +266,7 @@ async function main() {
     responses: [
       {
         user: student1,
-        score: 2,
+        score: 1.0, // 2/2 = 100%
         answers: [
           { questionIndex: 0, optionIndex: 1 },
           { questionIndex: 1, optionIndex: 0 },
@@ -270,7 +274,7 @@ async function main() {
       },
       {
         user: student2,
-        score: 1,
+        score: 0.5, // 1/2 = 50%
         answers: [
           { questionIndex: 0, optionIndex: 0 },
           { questionIndex: 1, optionIndex: 0 },
@@ -282,9 +286,10 @@ async function main() {
   await createQuizWithResponses({
     lessonId: htmlLesson.id,
     title: "Semantic HTML Sprint",
+    isActive: true,
     attemptLimit: 2,
     timeLimitSeconds: 300,
-    availableUntil: minutesFromNow(30),
+    availableUntil: minutesFromNow(720),
     questions: [
       {
         text: "Which element represents the header for a document or section?",
@@ -292,7 +297,7 @@ async function main() {
           { text: "<header>", isCorrect: true },
           { text: "<top>", isCorrect: false },
           { text: "<section>", isCorrect: false },
-          { text: "<div class=\"header\">", isCorrect: false },
+          { text: '<div class="header">', isCorrect: false },
         ],
       },
       {
@@ -317,7 +322,7 @@ async function main() {
     responses: [
       {
         user: student1,
-        score: 2,
+        score: 2 / 3, // 2/3 = 66.67%
         answers: [
           { questionIndex: 0, optionIndex: 1 },
           { questionIndex: 1, optionIndex: 0 },
@@ -327,7 +332,7 @@ async function main() {
       },
       {
         user: student1,
-        score: 3,
+        score: 1.0, // 3/3 = 100%
         answers: [
           { questionIndex: 0, optionIndex: 0 },
           { questionIndex: 1, optionIndex: 1 },
@@ -338,7 +343,7 @@ async function main() {
       },
       {
         user: student2,
-        score: 1,
+        score: 1 / 3, // 1/3 = 33.33%
         answers: [
           { questionIndex: 0, optionIndex: 3 },
           { questionIndex: 1, optionIndex: 1 },
@@ -354,7 +359,7 @@ async function main() {
     isActive: true,
     attemptLimit: 3,
     timeLimitSeconds: 900,
-    availableUntil: minutesFromNow(240),
+    availableUntil: minutesFromNow(720),
     questions: [
       {
         text: "Which keyword declares a block-scoped variable?",
@@ -378,7 +383,7 @@ async function main() {
     responses: [
       {
         user: student1,
-        score: 1,
+        score: 0.5, // 1/2 = 50%
         attemptNumber: 1,
         answers: [
           { questionIndex: 0, optionIndex: 0 },
@@ -387,7 +392,7 @@ async function main() {
       },
       {
         user: student1,
-        score: 2,
+        score: 1.0, // 2/2 = 100%
         attemptNumber: 2,
         answers: [
           { questionIndex: 0, optionIndex: 1 },
@@ -396,7 +401,7 @@ async function main() {
       },
       {
         user: student2,
-        score: 2,
+        score: 1.0, // 2/2 = 100%
         answers: [
           { questionIndex: 0, optionIndex: 1 },
           { questionIndex: 1, optionIndex: 0 },
@@ -408,9 +413,10 @@ async function main() {
   await createQuizWithResponses({
     lessonId: jsLesson.id,
     title: "Async JavaScript Mini Quiz",
+    isActive: true,
     attemptLimit: 1,
     timeLimitSeconds: 420,
-    availableUntil: minutesFromNow(-60),
+    availableUntil: minutesFromNow(720),
     questions: [
       {
         text: "Which API schedules work after the current call stack clears?",
@@ -435,7 +441,7 @@ async function main() {
     responses: [
       {
         user: student2,
-        score: 1,
+        score: 0.5, // 1/2 = 50%
         answers: [
           { questionIndex: 0, optionIndex: 0 },
           { questionIndex: 1, optionIndex: 2 },
@@ -448,9 +454,10 @@ async function main() {
   await createQuizWithResponses({
     lessonId: dsLesson.id,
     title: "Data Structures Warm-up",
+    isActive: true,
     attemptLimit: 2,
     timeLimitSeconds: 600,
-    availableUntil: minutesFromNow(360),
+    availableUntil: minutesFromNow(720),
     questions: [
       {
         text: "Which data structure provides O(1) average lookup?",
@@ -483,7 +490,7 @@ async function main() {
     responses: [
       {
         user: student1,
-        score: 3,
+        score: 1.0, // 3/3 = 100%
         answers: [
           { questionIndex: 0, optionIndex: 0 },
           { questionIndex: 1, optionIndex: 1 },
@@ -492,7 +499,7 @@ async function main() {
       },
       {
         user: student2,
-        score: 2,
+        score: 2 / 3, // 2/3 = 66.67%
         answers: [
           { questionIndex: 0, optionIndex: 0 },
           { questionIndex: 1, optionIndex: 3 },
@@ -505,9 +512,10 @@ async function main() {
   await createQuizWithResponses({
     lessonId: algoLesson.id,
     title: "Algorithmic Thinking Drill",
+    isActive: true,
     attemptLimit: 1,
     timeLimitSeconds: 480,
-    availableUntil: minutesFromNow(-240),
+    availableUntil: minutesFromNow(720),
     questions: [
       {
         text: "Which algorithm has O(n log n) average complexity?",
@@ -534,7 +542,7 @@ async function main() {
     responses: [
       {
         user: student1,
-        score: 2,
+        score: 1.0, // 2/2 = 100%
         answers: [
           { questionIndex: 0, optionIndex: 0 },
           { questionIndex: 1, optionIndex: 1 },
@@ -547,7 +555,9 @@ async function main() {
   console.log("✅ Seed complete:");
   console.log(`- Admin: ${adminEmail}`);
   console.log("- Teacher: teacher@example.com / test");
-  console.log("- Enrolled students: student1@example.com, student2@example.com (password: test)");
+  console.log(
+    "- Enrolled students: student1@example.com, student2@example.com (password: test)",
+  );
   if (unassignedStudents.length) {
     console.log(
       `- Additional students ready to enroll: ${unassignedStudents
@@ -555,9 +565,13 @@ async function main() {
         .join(", ")} (password: test)`,
     );
   }
-  console.log("- Classes: Introduction to Web Development, Advanced Programming Concepts");
+  console.log(
+    "- Classes: Introduction to Web Development, Advanced Programming Concepts",
+  );
   console.log("- Lessons per class: 2");
-  console.log("- Quizzes: multi-question with deadlines, timers and retake data");
+  console.log(
+    "- Quizzes: multi-question with deadlines, timers and retake data",
+  );
 }
 
 main()

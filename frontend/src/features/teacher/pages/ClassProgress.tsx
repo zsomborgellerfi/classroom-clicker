@@ -132,6 +132,13 @@ export default function ClassProgress() {
   return (
     <TeacherLayout>
       <Breadcrumbs items={breadcrumbItems} />
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={() => navigate(`/teacher/classes/${classId}`)}
+        sx={{ mt: 0.5 }}
+      >
+        {t("common.back")}
+      </Button>
       <Box sx={{ mb: 3, display: "flex", alignItems: "flex-start", gap: 2 }}>
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" gutterBottom>

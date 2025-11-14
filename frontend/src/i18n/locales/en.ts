@@ -189,6 +189,7 @@ export const en = {
         edit: "Edit Class",
         delete: "Delete Class",
         viewProgress: "View Progress",
+        manageStudents: "Manage Students",
       },
       delete: {
         title: "Delete Class",
@@ -207,6 +208,10 @@ export const en = {
       students: {
         title: "Enrolled Students",
         empty: "No students have been assigned to this class yet.",
+        description:
+          "Manage student enrollment, view progress, and export rosters.",
+        quickView:
+          "{{count}} student(s) enrolled. Click 'Manage Students' to view details and manage enrollment.",
         add: "Assign Student",
         selectLabel: "Select a student",
         searchLabel: "Search students",
@@ -254,21 +259,21 @@ export const en = {
         },
       },
       invites: {
-        title: "Invite Links",
-        createButton: "Create Invite",
-        createTitle: "Generate Invite",
+        title: "Invitation Codes",
+        createButton: "Create Invitation Code",
+        createTitle: "Generate Invitation Code",
         maxUses: "Max number of uses",
         expiresInHours: "Expires in (hours)",
         expiresHelp: "Leave blank to keep the default 48 hour expiry",
         optional: "Optional",
-        empty: "No invite links yet.",
-        success: "Invite link created",
-        deleteSuccess: "Invite deleted",
-        error: "Unable to manage invite",
-        copySuccess: "Invite code copied",
-        copyError: "Failed to copy invite code",
+        empty: "No invitation codes yet.",
+        success: "Invitation code created",
+        deleteSuccess: "Invitation code deleted",
+        error: "Unable to manage invitation code",
+        copySuccess: "Invitation code copied",
+        copyError: "Failed to copy invitation code",
         copyCode: "Copy code",
-        delete: "Delete invite",
+        delete: "Delete invitation code",
         uses: "Uses: {{used}} / {{max}}",
         unlimited: "Unlimited",
         noExpiry: "No expiry",
@@ -297,6 +302,7 @@ export const en = {
       },
     },
     lessons: {
+      title: "Lessons",
       create: {
         title: "Create New Lesson",
         button: "Create Lesson",
@@ -304,7 +310,7 @@ export const en = {
         success: "Lesson created successfully",
         error: "Failed to create lesson",
       },
-      title: {
+      titleInput: {
         label: "Lesson Title",
         min: "Title must be at least 2 characters",
       },
@@ -598,6 +604,14 @@ export const en = {
       score: "Score",
       error: "Unable to load progress.",
       empty: "You have not completed any quizzes yet.",
+      classStats: "{{quizzes}} quizzes · {{average}}% average",
+      bestScore: "Best: {{score}}%",
+      attempts: "{{count}} attempt",
+      attempts_plural: "{{count}} attempts",
+      canRetake: "Can retake",
+      retake: "Retake",
+      review: "Review",
+      progressOverTime: "Progress over attempts:",
     },
   },
   validation: {

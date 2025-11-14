@@ -1,13 +1,11 @@
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import {
   Box,
-  Breadcrumbs,
   Button,
   Card,
   CardContent,
   Chip,
   Grid,
-  Link as MuiLink,
   Paper,
   Table,
   TableBody,
@@ -22,7 +20,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
-import { Link as RouterLink } from "react-router-dom";
 
 import { Quiz, StudentResponse } from "@shared/types";
 
@@ -32,6 +29,7 @@ import { TeacherLayout } from "@/layouts/TeacherLayout";
 import api, { ENDPOINTS } from "@/lib/api";
 import { exportQuizResults } from "@/lib/export";
 import { connectSocket } from "@/lib/socket";
+import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 import { useAppSelector } from "@/store/hooks";
 
 export function QuizDetails() {
@@ -61,17 +59,42 @@ export function QuizDetails() {
   });
   const { data: classInfo } = useQuery<{
     id: string;
+    name: string;
     students: { id: string }[];
   }>({
     queryKey: ["class", classId],
     queryFn: async () => {
       const response = await api.get<{
         id: string;
+        name: string;
         students: { id: string }[];
       }>(ENDPOINTS.CLASS.GET(classId!));
       return response.data;
     },
     enabled: Boolean(classId),
+  });
+
+  const { data: lessonData } = useQuery<{
+    id: string;
+    title: string;
+    class: {
+      id: string;
+      name: string;
+    };
+  }>({
+    queryKey: ["lesson", lessonId],
+    queryFn: async () => {
+      const response = await api.get<{
+        id: string;
+        title: string;
+        class: {
+          id: string;
+          name: string;
+        };
+      }>(ENDPOINTS.LESSON.GET(classId!, lessonId!));
+      return response.data;
+    },
+    enabled: Boolean(classId) && Boolean(lessonId),
   });
 
   // Add sorting state
@@ -285,35 +308,26 @@ export function QuizDetails() {
     return { ...question, optionStats };
   });
 
+  const breadcrumbItems = [
+    { label: t("teacher.dashboard.title"), path: "/teacher" },
+    { label: t("teacher.classes.title"), path: "/teacher/classes" },
+    {
+      label: lessonData?.class?.name || classInfo?.name || "",
+      path: classId ? `/teacher/classes/${classId}` : undefined,
+    },
+    {
+      label: lessonData?.title || "",
+      path:
+        classId && lessonId
+          ? `/teacher/classes/${classId}/lessons/${lessonId}/quizzes`
+          : undefined,
+    },
+    { label: quiz?.title || "" },
+  ];
+
   return (
     <TeacherLayout>
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <MuiLink
-          component={RouterLink}
-          to="/teacher/classes"
-          color="inherit"
-          underline="hover"
-        >
-          {t("teacher.classes.title")}
-        </MuiLink>
-        <MuiLink
-          component={RouterLink}
-          to={`/teacher/classes/${classId}`}
-          color="inherit"
-          underline="hover"
-        >
-          {t("teacher.lessons.title.label")}
-        </MuiLink>
-        <MuiLink
-          component={RouterLink}
-          to={`/teacher/classes/${classId}/lessons/${lessonId}/quizzes`}
-          color="inherit"
-          underline="hover"
-        >
-          {t("teacher.quizzes.list.title")}
-        </MuiLink>
-        <Typography color="text.primary">{quiz.title}</Typography>
-      </Breadcrumbs>
+      <Breadcrumbs items={breadcrumbItems} />
       <Box>
         <Box
           sx={{

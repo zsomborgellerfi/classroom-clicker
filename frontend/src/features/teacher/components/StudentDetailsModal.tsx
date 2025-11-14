@@ -104,7 +104,14 @@ export function StudentDetailsModal({
             <Divider sx={{ my: 3 }} />
 
             {/* Statistics Cards */}
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2, mb: 3 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: 2,
+                mb: 3,
+              }}
+            >
               <Card>
                 <CardContent>
                   <Typography variant="subtitle2" color="text.secondary">
@@ -125,7 +132,11 @@ export function StudentDetailsModal({
                     {t("teacher.classes.students.details.averageScore")}
                   </Typography>
                   <Typography variant="h4">
-                    {Math.round(data.stats.averageScore * 100)}%
+                    {Math.min(
+                      100,
+                      Math.round(Math.min(data.stats.averageScore, 1.0) * 100),
+                    )}
+                    %
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {t("teacher.classes.students.details.acrossAllQuizzes")}
@@ -172,7 +183,11 @@ export function StudentDetailsModal({
                       <TableRow key={response.id}>
                         <TableCell>{response.quiz.title}</TableCell>
                         <TableCell align="right">
-                          {Math.min(100, Math.round(Math.min(response.score, 1) * 100))}%
+                          {Math.min(
+                            100,
+                            Math.round(Math.min(response.score, 1) * 100),
+                          )}
+                          %
                         </TableCell>
                         <TableCell align="right">
                           {new Date(response.submittedAt).toLocaleDateString()}
@@ -197,4 +212,3 @@ export function StudentDetailsModal({
     </Dialog>
   );
 }
-

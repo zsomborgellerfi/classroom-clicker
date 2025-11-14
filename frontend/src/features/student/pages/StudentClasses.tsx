@@ -1,9 +1,11 @@
-import { Alert, Box, Grid, Skeleton, Typography } from "@mui/material";
+import { Alert, Box, Grid, IconButton, Skeleton, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import type { Class, User } from "@shared/types";
 
-import { ClassJoinCard } from "@/features/student/components/ClassJoinCard";
+import { ClassJoinDialog } from "@/features/student/components/ClassJoinDialog";
 import { ClassCard } from "@/features/student/components/ClassCard";
 import { useTranslation } from "@/hooks/useTranslation";
 import { StudentLayout } from "@/layouts/StudentLayout";
@@ -19,6 +21,7 @@ type StudentClass = Class & {
 
 export default function StudentClasses() {
   const { t } = useTranslation();
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
 
   const {
     data: classes,
@@ -89,14 +92,27 @@ export default function StudentClasses() {
   return (
     <StudentLayout>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          {t("student.classes.title")}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+            {t("student.classes.title")}
+          </Typography>
+          <IconButton
+            color="primary"
+            onClick={() => setJoinDialogOpen(true)}
+            aria-label={t("student.classes.join.title")}
+          >
+            <AddIcon />
+          </IconButton>
+        </Box>
         <Typography variant="body1" color="text.secondary">
           {t("student.classes.subtitle")}
         </Typography>
       </Box>
-      <ClassJoinCard onJoined={refetch} />
+      <ClassJoinDialog
+        open={joinDialogOpen}
+        onClose={() => setJoinDialogOpen(false)}
+        onJoined={refetch}
+      />
       {renderContent()}
     </StudentLayout>
   );
