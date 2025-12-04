@@ -16,7 +16,6 @@ import { UserRole } from "@/enums/userRole";
 import { useTranslation } from "@/hooks/useTranslation";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { useAppSelector } from "@/store/hooks";
-import { fetchStudentDashboard } from "@/features/student/api/dashboard";
 
 const DISMISSED_STORAGE_KEY = "student_quiz_notifications:dismissed";
 
@@ -86,29 +85,8 @@ export function QuizActivationListener() {
       setNotification(payload);
     };
 
-    const preloadActiveQuiz = async () => {
-      try {
-        const data = await queryClient.fetchQuery({
-          queryKey: ["student-dashboard"],
-          queryFn: fetchStudentDashboard,
-        });
-        const firstActive = data.activeQuizzes?.[0];
-        if (firstActive) {
-          presentNotification({
-            quizId: firstActive.id,
-            quizTitle: firstActive.title,
-            lessonId: firstActive.lesson.id,
-            lessonTitle: firstActive.lesson.title,
-            classId: firstActive.lesson.class.id,
-            className: firstActive.lesson.class.name,
-          });
-        }
-      } catch (error) {
-        console.error("Error loading student dashboard for notifications", error);
-      }
-    };
-
-    preloadActiveQuiz();
+    // Preload removed - active quizzes are no longer returned in dashboard
+    // Socket events will handle quiz activation notifications
 
     const socket = connectSocket(token);
 

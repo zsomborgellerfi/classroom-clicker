@@ -16,10 +16,10 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useTheme } from "@mui/material/styles";
 
 import { useTranslation } from "@/hooks/useTranslation";
 import { TeacherLayout } from "@/layouts/TeacherLayout";
@@ -34,6 +34,7 @@ type ClassProgressResponse = {
     id: string;
     firstName: string;
     lastName: string;
+    externalId?: string;
     email: string;
   };
   quiz: {
@@ -85,6 +86,7 @@ export default function ClassProgress() {
       {
         name: string;
         email: string;
+        externalId?: string;
         attempts: number;
         avgScore: number;
         lastSubmittedAt: string;
@@ -95,6 +97,7 @@ export default function ClassProgress() {
       const attemptData = {
         name: `${response.user.firstName} ${response.user.lastName}`,
         email: response.user.email ?? "",
+        externalId: response.user.externalId,
         attempts: 1,
         avgScore: response.score,
         lastSubmittedAt: response.submittedAt,
@@ -189,6 +192,16 @@ export default function ClassProgress() {
                       <Typography variant="body2" color="text.secondary">
                         {stat.email}
                       </Typography>
+                      {stat.externalId && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontSize: "0.75rem" }}
+                        >
+                          {t("teacher.classes.students.externalId")}:{" "}
+                          {stat.externalId}
+                        </Typography>
+                      )}
                       <Typography variant="body2" sx={{ mt: 1 }}>
                         {t("teacher.classes.progress.table.attempts")}:{" "}
                         {stat.attempts}
@@ -219,6 +232,9 @@ export default function ClassProgress() {
                         <TableCell>
                           {t("teacher.classes.progress.table.email")}
                         </TableCell>
+                        <TableCell>
+                          {t("teacher.classes.students.table.externalId")}
+                        </TableCell>
                         <TableCell align="right">
                           {t("teacher.classes.progress.table.attempts")}
                         </TableCell>
@@ -235,6 +251,7 @@ export default function ClassProgress() {
                         <TableRow key={stat.id}>
                           <TableCell>{stat.name}</TableCell>
                           <TableCell>{stat.email}</TableCell>
+                          <TableCell>{stat.externalId || "—"}</TableCell>
                           <TableCell align="right">{stat.attempts}</TableCell>
                           <TableCell align="right">
                             {Math.min(

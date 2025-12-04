@@ -56,6 +56,7 @@ async function main() {
       firstName: "Admin",
       lastName: "User",
       role: UserRole.ADMIN,
+      externalId: "ADM001",
     },
   });
 
@@ -66,15 +67,41 @@ async function main() {
       firstName: "Sample",
       lastName: "Teacher",
       role: UserRole.TEACHER,
+      externalId: "TCH001",
     },
   });
 
   const studentSeedData = [
-    { email: "student1@example.com", firstName: "Student", lastName: "One" },
-    { email: "student2@example.com", firstName: "Student", lastName: "Two" },
-    { email: "student3@example.com", firstName: "Student", lastName: "Three" },
-    { email: "student4@example.com", firstName: "Student", lastName: "Four" },
-    { email: "student5@example.com", firstName: "Student", lastName: "Five" },
+    {
+      email: "student1@example.com",
+      firstName: "Student",
+      lastName: "One",
+      externalId: "STU2024001",
+    },
+    {
+      email: "student2@example.com",
+      firstName: "Student",
+      lastName: "Two",
+      externalId: "STU2024002",
+    },
+    {
+      email: "student3@example.com",
+      firstName: "Student",
+      lastName: "Three",
+      externalId: "STU2024003",
+    },
+    {
+      email: "student4@example.com",
+      firstName: "Student",
+      lastName: "Four",
+      externalId: "STU2024004",
+    },
+    {
+      email: "student5@example.com",
+      firstName: "Student",
+      lastName: "Five",
+      externalId: "STU2024005",
+    },
   ];
 
   const studentRecords = await Promise.all(
@@ -86,6 +113,7 @@ async function main() {
           firstName: student.firstName,
           lastName: student.lastName,
           role: UserRole.STUDENT,
+          externalId: student.externalId,
         },
       }),
     ),

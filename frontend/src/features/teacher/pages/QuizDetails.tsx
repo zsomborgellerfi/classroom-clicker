@@ -519,6 +519,9 @@ export function QuizDetails() {
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>
+                    {t("teacher.classes.students.table.externalId")}
+                  </TableCell>
+                  <TableCell>
                     <TableSortLabel
                       active={orderBy === "score"}
                       direction={orderBy === "score" ? order : "asc"}
@@ -543,6 +546,7 @@ export function QuizDetails() {
                   sortResponses(responses).map((response) => (
                     <TableRow key={response.id}>
                       <TableCell>{`${response.user.firstName} ${response.user.lastName}`}</TableCell>
+                      <TableCell>{response.user.externalId || "—"}</TableCell>
                       <TableCell>{`${Math.min(100, Math.round(Math.min(response.score, 1) * 100))}%`}</TableCell>
                       <TableCell>
                         {new Date(response.submittedAt).toLocaleString()}

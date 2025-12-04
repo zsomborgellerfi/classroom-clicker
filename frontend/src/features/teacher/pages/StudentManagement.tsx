@@ -51,6 +51,7 @@ interface StudentSummary {
   firstName: string;
   lastName: string;
   email: string;
+  externalId?: string;
 }
 
 interface ClassResponse {
@@ -80,7 +81,7 @@ export default function StudentManagement() {
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [studentSearchDebounced, setStudentSearchDebounced] = useState("");
   const [studentOrderBy, setStudentOrderBy] = useState<
-    "firstName" | "lastName" | "email"
+    "firstName" | "lastName" | "email" | "externalId"
   >("firstName");
   const [studentOrder, setStudentOrder] = useState<"asc" | "desc">("asc");
   const [studentToRemove, setStudentToRemove] = useState<StudentSummary | null>(
@@ -234,6 +235,10 @@ export default function StudentManagement() {
           return multiplier * a.lastName.localeCompare(b.lastName);
         case "email":
           return multiplier * a.email.localeCompare(b.email);
+        case "externalId":
+          const aId = a.externalId || "";
+          const bId = b.externalId || "";
+          return multiplier * aId.localeCompare(bId);
         default:
           return 0;
       }
@@ -478,6 +483,11 @@ export default function StudentManagement() {
                       <Typography variant="body2" color="text.secondary">
                         {student.email}
                       </Typography>
+                      {student.externalId && (
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.75rem" }}>
+                          {t("teacher.classes.students.externalId")}: {student.externalId}
+                        </Typography>
+                      )}
                     </Box>
                     <Checkbox
                       checked={studentsToRemove.has(student.id)}
@@ -559,6 +569,17 @@ export default function StudentManagement() {
                         {t("teacher.classes.students.table.email")}
                       </TableSortLabel>
                     </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={studentOrderBy === "externalId"}
+                        direction={
+                          studentOrderBy === "externalId" ? studentOrder : "asc"
+                        }
+                        onClick={() => handleStudentSort("externalId")}
+                      >
+                        {t("teacher.classes.students.table.externalId")}
+                      </TableSortLabel>
+                    </TableCell>
                     <TableCell align="right">
                       {t("teacher.classes.students.table.actions")}
                     </TableCell>
@@ -588,6 +609,7 @@ export default function StudentManagement() {
                       </TableCell>
                       <TableCell>{student.lastName}</TableCell>
                       <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.externalId || "—"}</TableCell>
                       <TableCell align="right">
                         <Tooltip title={t("teacher.classes.students.remove")}>
                           <IconButton
@@ -824,7 +846,17 @@ export default function StudentManagement() {
                       />
                       <ListItemText
                         primary={`${student.firstName} ${student.lastName}`}
-                        secondary={student.email}
+                        secondary={
+                          <>
+                            {student.email}
+                            {student.externalId && (
+                              <>
+                                <br />
+                                {t("teacher.classes.students.externalId")}: {student.externalId}
+                              </>
+                            )}
+                          </>
+                        }
                       />
                     </ListItemButton>
                   </ListItem>

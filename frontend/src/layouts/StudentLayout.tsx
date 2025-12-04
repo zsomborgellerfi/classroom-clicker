@@ -136,9 +136,16 @@ export function StudentLayout({ children }: StudentLayoutProps) {
         }}
       >
         {user?.firstName && user?.lastName && (
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            {`${user.firstName} ${user.lastName}`}
-          </Typography>
+          <>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {`${user.firstName} ${user.lastName}`}
+            </Typography>
+            {user.externalId && (
+              <Typography variant="caption" color="text.secondary">
+                {user.externalId}
+              </Typography>
+            )}
+          </>
         )}
         <Box
           sx={{

@@ -91,7 +91,7 @@ export default function StudentDashboard() {
             <Card sx={{ height: "100%" }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  {t("student.dashboard.activeQuizzes.title")}
+                  {t("student.dashboard.pastQuizzes.title")}
                 </Typography>
                 {isLoading ? (
                   <Skeleton variant="rectangular" height={200} />
@@ -99,9 +99,9 @@ export default function StudentDashboard() {
                   <Alert severity="error">
                     {t("student.dashboard.error")}
                   </Alert>
-                ) : data?.activeQuizzes?.length ? (
+                ) : data?.pastQuizzes?.length ? (
                   <List>
-                    {data.activeQuizzes.map((quiz) => (
+                    {data.pastQuizzes.map((quiz) => (
                       <ListItem
                         key={quiz.id}
                         divider
@@ -119,17 +119,26 @@ export default function StudentDashboard() {
                               <Typography component="span" variant="body2">
                                 {quiz.lesson.class.name} · {quiz.lesson.title}
                               </Typography>
-                              <br />
-                              <Typography component="span" variant="caption">
-                                {t("student.dashboard.activeQuizzes.opens")}:{" "}
-                                {formatDateTime(quiz.opensAt)}
-                              </Typography>
-                              {quiz.closesAt && (
+                              {quiz.latestResponse && (
                                 <>
                                   <br />
                                   <Typography component="span" variant="caption">
-                                    {t("student.dashboard.activeQuizzes.closes")}:{" "}
-                                    {formatDateTime(quiz.closesAt)}
+                                    {t("student.dashboard.pastQuizzes.score")}:{" "}
+                                    {Math.round(quiz.latestResponse.score * 100)}%
+                                  </Typography>
+                                  {quiz.latestResponse.attemptNumber > 1 && (
+                                    <>
+                                      {" · "}
+                                      <Typography component="span" variant="caption">
+                                        {t("student.dashboard.pastQuizzes.bestScore")}:{" "}
+                                        {Math.round(quiz.bestScore * 100)}%
+                                      </Typography>
+                                    </>
+                                  )}
+                                  <br />
+                                  <Typography component="span" variant="caption">
+                                    {t("student.dashboard.pastQuizzes.completed")}:{" "}
+                                    {formatDateTime(quiz.latestResponse.submittedAt)}
                                   </Typography>
                                 </>
                               )}
@@ -141,7 +150,7 @@ export default function StudentDashboard() {
                   </List>
                 ) : (
                   <Alert severity="info">
-                    {t("student.dashboard.activeQuizzes.empty")}
+                    {t("student.dashboard.pastQuizzes.empty")}
                   </Alert>
                 )}
               </CardContent>
@@ -173,15 +182,17 @@ export default function StudentDashboard() {
                           {t("student.dashboard.nextQuiz.closes")}:{" "}
                           {formatDateTime(nextQuiz.closesAt)}
                         </Typography>
-                        <Chip
-                          label={t("student.dashboard.nextQuiz.cta")}
-                          color="primary"
-                          onClick={() =>
-                            navigate(
-                              `/student/classes/${nextQuiz.lesson.class.id}/lessons/${nextQuiz.lesson.id}/quizzes/${nextQuiz.id}`,
-                            )
-                          }
-                        />
+                        {nextQuiz.isFillable && (
+                          <Chip
+                            label={t("student.dashboard.nextQuiz.cta")}
+                            color="primary"
+                            onClick={() =>
+                              navigate(
+                                `/student/classes/${nextQuiz.lesson.class.id}/lessons/${nextQuiz.lesson.id}/quizzes/${nextQuiz.id}`,
+                              )
+                            }
+                          />
+                        )}
                       </Box>
                     );
                   })()

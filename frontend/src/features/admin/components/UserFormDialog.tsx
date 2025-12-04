@@ -34,6 +34,7 @@ const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
+  externalId: z.string().optional(),
   role: z.nativeEnum(UserRole),
   password: z
     .string()
@@ -66,6 +67,7 @@ export function UserFormDialog({ user, open, onClose }: UserFormDialogProps) {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        externalId: user.externalId || "",
         role: user.role,
       });
     } else if (!open) {
@@ -73,6 +75,7 @@ export function UserFormDialog({ user, open, onClose }: UserFormDialogProps) {
         email: "",
         firstName: "",
         lastName: "",
+        externalId: "",
         role: UserRole.STUDENT,
         password: "",
       });
@@ -141,6 +144,14 @@ export function UserFormDialog({ user, open, onClose }: UserFormDialogProps) {
             label={t("admin.users.email.label")}
             error={!!errors.email}
             helperText={errors.email?.message}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            {...register("externalId")}
+            label={t("admin.users.externalId.label")}
+            error={!!errors.externalId}
+            helperText={errors.externalId?.message || t("admin.users.externalId.helperText")}
             fullWidth
             margin="normal"
           />

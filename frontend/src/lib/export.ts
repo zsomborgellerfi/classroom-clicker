@@ -82,6 +82,7 @@ export function exportClassRoster(
     firstName: string;
     lastName: string;
     email: string;
+    externalId?: string;
   }>,
   className: string,
 ): void {
@@ -89,9 +90,10 @@ export function exportClassRoster(
     { key: "firstName" as const, label: "First Name" },
     { key: "lastName" as const, label: "Last Name" },
     { key: "email" as const, label: "Email" },
+    { key: "externalId" as const, label: "External ID" },
   ];
 
-  const csv = arrayToCSV(students, headers);
+  const csv = arrayToCSV(students.map(s => ({ ...s, externalId: s.externalId || "" })), headers);
   const filename = `${className.replace(/[^a-z0-9]/gi, "_")}_roster`;
   downloadCSV(csv, filename);
 }
@@ -105,6 +107,7 @@ export function exportQuizResults(
       firstName: string;
       lastName: string;
       email?: string;
+      externalId?: string;
     };
     score: number;
     submittedAt: string;
@@ -115,6 +118,7 @@ export function exportQuizResults(
   const headers = [
     { key: "studentName" as const, label: "Student Name" },
     { key: "email" as const, label: "Email" },
+    { key: "externalId" as const, label: "External ID" },
     { key: "score" as const, label: "Score (%)" },
     { key: "attemptNumber" as const, label: "Attempt" },
     { key: "submittedAt" as const, label: "Submitted At" },
@@ -123,6 +127,7 @@ export function exportQuizResults(
   const data = responses.map((response) => ({
     studentName: `${response.user.firstName} ${response.user.lastName}`,
     email: response.user.email || "",
+    externalId: response.user.externalId || "",
     score: Math.min(100, Math.round(Math.min(response.score, 1) * 100)),
     attemptNumber: response.attemptNumber || 1,
     submittedAt: new Date(response.submittedAt).toLocaleString(),

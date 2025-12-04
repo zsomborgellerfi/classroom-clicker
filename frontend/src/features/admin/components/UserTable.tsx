@@ -24,7 +24,7 @@ import api from "@/lib/api";
 import { ENDPOINTS } from "@/lib/api";
 
 type Order = "asc" | "desc";
-type OrderBy = keyof Pick<User, "firstName" | "lastName" | "email" | "role" | "createdAt">;
+type OrderBy = keyof Pick<User, "firstName" | "lastName" | "email" | "externalId" | "role" | "createdAt">;
 
 interface UsersResponse {
   users: User[];
@@ -74,6 +74,7 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
     { id: "firstName" as const, label: t("admin.users.table.firstName") },
     { id: "lastName" as const, label: t("admin.users.table.lastName") },
     { id: "email" as const, label: t("admin.users.table.email") },
+    { id: "externalId" as const, label: t("admin.users.table.externalId") },
     { id: "role" as const, label: t("admin.users.table.role") },
     { id: "createdAt" as const, label: t("admin.users.table.createdAt") },
   ];
@@ -114,6 +115,7 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
                 <TableCell>{user.firstName}</TableCell>
                 <TableCell>{user.lastName}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user.externalId || "—"}</TableCell>
                 <TableCell>
                   {t(`admin.users.role.${user.role.toLowerCase()}`)}
                 </TableCell>

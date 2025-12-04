@@ -65,6 +65,7 @@ export const hu: Translations = {
         firstName: "Keresztnév",
         lastName: "Vezetéknév",
         email: "Email",
+        externalId: "Külső azonosító",
         role: "Szerepkör",
         createdAt: "Létrehozva",
         actions: "Műveletek",
@@ -89,6 +90,10 @@ export const hu: Translations = {
       email: {
         label: "Email",
         invalid: "Érvénytelen email-cím",
+      },
+      externalId: {
+        label: "Külső azonosító",
+        helperText: "Opcionális egyedi azonosító külső forrásból (pl. egyetemi azonosító)",
       },
       password: {
         label: "Jelszó",
@@ -119,7 +124,7 @@ export const hu: Translations = {
         openButton: "Felhasználók importálása",
         title: "Tömeges felhasználó import",
         description:
-          "Tölts fel egy CSV fájlt a következő oszlopokkal: firstName, lastName, email, password, role.",
+          "Tölts fel egy CSV fájlt a következő oszlopokkal: firstName, lastName, email, password, role, externalId (opcionális).",
         selectFile: "CSV fájl kiválasztása",
         selectedFile: "Kiválasztott fájl: {{name}}",
         previewTitle: "Előnézet ({{count}} felhasználó)",
@@ -232,8 +237,10 @@ export const hu: Translations = {
           firstName: "Keresztnév",
           lastName: "Vezetéknév",
           email: "Email",
+          externalId: "Külső azonosító",
           actions: "Műveletek",
         },
+        externalId: "Külső azonosító",
         selectMultiple: "Válassz ki több diákot egyszerre",
         selectAll: "Összes kijelölése",
         deselectAll: "Kijelölés megszüntetése",
@@ -503,6 +510,13 @@ export const hu: Translations = {
         closes: "Zárás",
         empty: "Jelenleg nincs aktív kvíz.",
       },
+      pastQuizzes: {
+        title: "Korábbi kvízek",
+        score: "Pontszám",
+        bestScore: "Legjobb",
+        completed: "Befejezve",
+        empty: "Még nem fejeztél be egyetlen kvízt sem.",
+      },
       nextQuiz: {
         title: "Következő kvíz",
         opens: "Nyitás",
@@ -621,6 +635,7 @@ export const hu: Translations = {
     required: "Ez a mező kötelező",
   },
   common: {
+    appName: "Classroom Clicker",
     cancel: "Mégse",
     confirm: "Megerősít",
     delete: "Törlés",

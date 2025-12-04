@@ -15,7 +15,7 @@ export interface StudentResponse {
   id: string;
   quizId: string;
   userId: string;
-  user: Pick<User, "id" | "firstName" | "lastName">;
+  user: Pick<User, "id" | "firstName" | "lastName" | "externalId">;
   answers: QuizResponseAnswer[];
   score: number;
   attemptNumber: number;

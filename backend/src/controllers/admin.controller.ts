@@ -28,6 +28,7 @@ class AdminController {
             firstName: true,
             lastName: true,
             email: true,
+            externalId: true,
             role: true,
             createdAt: true,
           },
@@ -47,10 +48,55 @@ class AdminController {
     }
   }
 
+  async createUser(req: Request, res: Response) {
+    try {
+      const { firstName, lastName, email, password, role, externalId } = req.body;
+
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ error: "User with this email already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          password: hashedPassword,
+          role: (role || UserRole.STUDENT) as UserRole,
+          externalId: externalId || null,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          externalId: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  }
+
   async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { firstName, lastName, email, role } = req.body;
+      const { firstName, lastName, email, role, externalId } = req.body;
 
       const existingUser = await prisma.user.findUnique({
         where: { id },
@@ -73,12 +119,14 @@ class AdminController {
           lastName,
           email,
           role: role as UserRole,
+          externalId: externalId !== undefined ? externalId : existingUser.externalId,
         },
         select: {
           id: true,
           firstName: true,
           lastName: true,
           email: true,
+          externalId: true,
           role: true,
           createdAt: true,
         },
@@ -141,6 +189,7 @@ class AdminController {
           firstName: true,
           lastName: true,
           email: true,
+          externalId: true,
           role: true,
           createdAt: true,
         },
@@ -193,6 +242,7 @@ class AdminController {
           email?: string;
           password?: string;
           role?: string;
+          externalId?: string;
         }>;
       };
 
@@ -224,6 +274,7 @@ class AdminController {
         const email = rawUser.email?.trim().toLowerCase();
         const password = rawUser.password;
         const role = (rawUser.role || UserRole.STUDENT).toUpperCase();
+        const externalId = rawUser.externalId?.trim() || null;
 
         if (!firstName || !lastName || !email || !password) {
           summary.skipped += 1;
@@ -253,6 +304,7 @@ class AdminController {
             email,
             password: hashedPassword,
             role: role as UserRole,
+            externalId,
           },
         });
 

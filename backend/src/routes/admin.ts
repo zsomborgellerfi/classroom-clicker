@@ -15,6 +15,7 @@ router.get("/insights", adminController.getInsights);
 
 // User management routes
 router.get("/users", adminController.getUsers);
+router.post("/users", adminController.createUser);
 router.post("/users/import", adminController.importUsers);
 router.put("/users/:id", adminController.updateUser);
 router.delete("/users/:id", adminController.deleteUser);

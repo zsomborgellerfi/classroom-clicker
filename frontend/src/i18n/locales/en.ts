@@ -62,6 +62,7 @@ export const en = {
         firstName: "First Name",
         lastName: "Last Name",
         email: "Email",
+        externalId: "External ID",
         role: "Role",
         createdAt: "Created At",
         actions: "Actions",
@@ -86,6 +87,11 @@ export const en = {
       email: {
         label: "Email",
         invalid: "Invalid email address",
+      },
+      externalId: {
+        label: "External ID",
+        helperText:
+          "Optional unique identifier from external source (e.g., university ID)",
       },
       password: {
         label: "Password",
@@ -116,7 +122,7 @@ export const en = {
         openButton: "Import Users",
         title: "Bulk Import Users",
         description:
-          "Upload a CSV file with the columns: firstName, lastName, email, password, role.",
+          "Upload a CSV file with the columns: firstName, lastName, email, password, role, externalId (optional).",
         selectFile: "Select CSV file",
         selectedFile: "Selected file: {{name}}",
         previewTitle: "Preview ({{count}} users)",
@@ -230,8 +236,10 @@ export const en = {
           firstName: "First Name",
           lastName: "Last Name",
           email: "Email",
+          externalId: "External ID",
           actions: "Actions",
         },
+        externalId: "External ID",
         selectMultiple: "Select multiple students to assign at once",
         selectAll: "Select All",
         deselectAll: "Deselect All",
@@ -502,6 +510,13 @@ export const en = {
         opens: "Opens",
         closes: "Closes",
         empty: "There are no active quizzes right now.",
+      },
+      pastQuizzes: {
+        title: "Past Quizzes",
+        score: "Score",
+        bestScore: "Best",
+        completed: "Completed",
+        empty: "You haven't completed any quizzes yet.",
       },
       nextQuiz: {
         title: "Next Up",

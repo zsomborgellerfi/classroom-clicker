@@ -9,6 +9,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  externalId?: string; // Unique identifier from external source (e.g., university ID)
   role: UserRole;
   createdAt: string;
 }

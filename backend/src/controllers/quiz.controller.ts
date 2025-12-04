@@ -851,6 +851,7 @@ class QuizController {
               id: true,
               firstName: true,
               lastName: true,
+              externalId: true,
             },
           },
           answers: true,

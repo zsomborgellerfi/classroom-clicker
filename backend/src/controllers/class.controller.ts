@@ -51,6 +51,7 @@ class ClassController {
               firstName: true,
               lastName: true,
               email: true,
+              externalId: true,
             },
           },
         },
@@ -94,6 +95,7 @@ class ClassController {
               firstName: true,
               lastName: true,
               email: true,
+              externalId: true,
             },
           },
           _count: {
@@ -124,6 +126,7 @@ class ClassController {
               firstName: true,
               lastName: true,
               email: true,
+              externalId: true,
             },
           },
           students: {
@@ -203,6 +206,7 @@ class ClassController {
               firstName: true,
               lastName: true,
               email: true,
+              externalId: true,
             },
           },
         },
@@ -717,6 +721,7 @@ class ClassController {
               firstName: true,
               lastName: true,
               email: true,
+              externalId: true,
             },
           },
           quiz: {
@@ -773,6 +778,7 @@ class ClassController {
           firstName: true,
           lastName: true,
           email: true,
+          externalId: true,
         },
       });
 
@@ -878,7 +884,7 @@ class ClassController {
       }
 
       const [
-        activeQuizzes,
+        pastQuizzes,
         upcomingQuiz,
         totalQuizzes,
         completedQuizzes,
@@ -886,7 +892,11 @@ class ClassController {
       ] = await Promise.all([
         prisma.quiz.findMany({
           where: {
-            isActive: true,
+            responses: {
+              some: {
+                userId: studentId,
+              },
+            },
             lesson: {
               class: {
                 students: {
@@ -908,17 +918,30 @@ class ClassController {
                     name: true,
                   },
                 },
+              },
+            },
+            responses: {
+              where: {
+                userId: studentId,
+              },
+              select: {
+                id: true,
+                score: true,
+                submittedAt: true,
+                attemptNumber: true,
+              },
+              orderBy: {
+                submittedAt: "desc",
               },
             },
           },
           orderBy: {
             updatedAt: "desc",
           },
-          take: 5,
+          take: 20,
         }),
         prisma.quiz.findFirst({
           where: {
-            isActive: false,
             lesson: {
               class: {
                 students: {
@@ -940,6 +963,14 @@ class ClassController {
                     name: true,
                   },
                 },
+              },
+            },
+            responses: {
+              where: {
+                userId: studentId,
+              },
+              select: {
+                id: true,
               },
             },
           },
@@ -993,7 +1024,25 @@ class ClassController {
         return new Date(Math.min(...candidates));
       };
 
-      const mapQuizSummary = (quiz: (typeof activeQuizzes)[number]) => ({
+      const mapQuizSummary = (quiz: {
+        id: string;
+        title: string;
+        activatedAt: Date | null;
+        createdAt: Date;
+        availableUntil: Date | null;
+        timeLimitSeconds: number | null;
+        attemptLimit: number | null;
+        isActive: boolean;
+        lesson: {
+          id: string;
+          title: string;
+          class: {
+            id: string;
+            name: string;
+          };
+        };
+        responses?: Array<{ id: string }>;
+      }) => ({
         id: quiz.id,
         title: quiz.title,
         opensAt: quiz.activatedAt ?? quiz.createdAt,
@@ -1001,9 +1050,55 @@ class ClassController {
         lesson: quiz.lesson,
       });
 
+      // Filter past quizzes: closed quizzes (inactive or deadline passed) where student has responses
+      const now = new Date();
+      const closedPastQuizzes = pastQuizzes
+        .filter((quiz) => {
+          const deadline = computeDeadline(quiz);
+          const isClosed =
+            !quiz.isActive ||
+            (deadline !== null && deadline.getTime() <= now.getTime());
+          return isClosed && quiz.responses.length > 0;
+        })
+        .slice(0, 5)
+        .map((quiz) => ({
+          ...mapQuizSummary(quiz),
+          bestScore:
+            quiz.responses.length > 0
+              ? Math.max(
+                  ...quiz.responses.map((r) => Math.min(r.score, 1.0)),
+                )
+              : 0,
+          latestResponse: quiz.responses[0]
+            ? {
+                score: Math.min(quiz.responses[0].score, 1.0),
+                submittedAt: quiz.responses[0].submittedAt,
+                attemptNumber: quiz.responses[0].attemptNumber,
+              }
+            : null,
+        }));
+
+      // Determine if nextQuiz is fillable
+      let nextQuizFillable = false;
+      if (upcomingQuiz) {
+        const studentAttemptCount = upcomingQuiz.responses?.length ?? 0;
+        const attemptLimit = upcomingQuiz.attemptLimit ?? 1;
+        const hasAttemptsLeft = studentAttemptCount < attemptLimit;
+        const deadline = computeDeadline(upcomingQuiz);
+        const isNotExpired =
+          deadline === null || deadline.getTime() > now.getTime();
+        nextQuizFillable =
+          upcomingQuiz.isActive && hasAttemptsLeft && isNotExpired;
+      }
+
       res.json({
-        activeQuizzes: activeQuizzes.map(mapQuizSummary),
-        nextQuiz: upcomingQuiz ? mapQuizSummary(upcomingQuiz) : null,
+        pastQuizzes: closedPastQuizzes,
+        nextQuiz: upcomingQuiz
+          ? {
+              ...mapQuizSummary(upcomingQuiz),
+              isFillable: nextQuizFillable,
+            }
+          : null,
         stats: {
           totalQuizzes,
           completedQuizzes,

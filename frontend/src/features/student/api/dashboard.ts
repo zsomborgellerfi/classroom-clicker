@@ -13,11 +13,21 @@ export interface QuizSummary {
       name: string;
     };
   };
+  isFillable?: boolean;
+}
+
+export interface PastQuizSummary extends QuizSummary {
+  bestScore: number;
+  latestResponse: {
+    score: number;
+    submittedAt: string;
+    attemptNumber: number;
+  } | null;
 }
 
 export interface StudentDashboardResponse {
-  activeQuizzes: QuizSummary[];
-  nextQuiz: QuizSummary | null;
+  pastQuizzes: PastQuizSummary[];
+  nextQuiz: (QuizSummary & { isFillable?: boolean }) | null;
   stats: {
     totalQuizzes: number;
     completedQuizzes: number;

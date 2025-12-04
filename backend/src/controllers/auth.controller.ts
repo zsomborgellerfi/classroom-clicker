@@ -14,12 +14,13 @@ const prisma = new PrismaClient();
 class AuthController {
   async register(req: Request, res: Response) {
     try {
-      const { email, password, firstName, lastName, role } = req.body as {
+      const { email, password, firstName, lastName, role, externalId } = req.body as {
         email: string;
         password: string;
         firstName: string;
         lastName: string;
         role?: User["role"];
+        externalId?: string;
       };
 
       const existingUser = await prisma.user.findUnique({
@@ -39,6 +40,7 @@ class AuthController {
           firstName,
           lastName,
           role: role || "STUDENT",
+          externalId: externalId || null,
         },
       });
 
@@ -55,6 +57,7 @@ class AuthController {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          externalId: user.externalId,
           role: user.role,
         },
       });
@@ -96,6 +99,7 @@ class AuthController {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          externalId: user.externalId,
           role: user.role,
         },
       });
@@ -117,6 +121,7 @@ class AuthController {
           email: true,
           firstName: true,
           lastName: true,
+          externalId: true,
           role: true,
           createdAt: true,
         },

@@ -19,7 +19,7 @@ class TeacherController {
         100,
       );
       const offset = parseInt((req.query.offset as string) || "0", 10);
-      const validOrderBy = ["firstName", "lastName", "email"];
+      const validOrderBy = ["firstName", "lastName", "email", "externalId"];
       const orderByParam = (req.query.orderBy as string) || "firstName";
       const orderBy = validOrderBy.includes(orderByParam)
         ? orderByParam
@@ -32,6 +32,7 @@ class TeacherController {
               { firstName: { contains: search, mode: "insensitive" as const } },
               { lastName: { contains: search, mode: "insensitive" as const } },
               { email: { contains: search, mode: "insensitive" as const } },
+              { externalId: { contains: search, mode: "insensitive" as const } },
             ],
           }
         : {};
@@ -49,6 +50,7 @@ class TeacherController {
             firstName: true,
             lastName: true,
             email: true,
+            externalId: true,
           },
           orderBy: {
             [orderBy]: order,

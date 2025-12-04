@@ -26,6 +26,7 @@ interface StudentSummary {
   firstName: string;
   lastName: string;
   email: string;
+  externalId?: string;
 }
 
 interface StudentDetailsResponse {
@@ -82,9 +83,18 @@ export function StudentDetailsModal({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {data?.student
-          ? `${data.student.firstName} ${data.student.lastName}`
-          : t("teacher.classes.students.details.title")}
+        {data?.student ? (
+          <>
+            {`${data.student.firstName} ${data.student.lastName}`}
+            {data.student.externalId && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                {t("teacher.classes.students.externalId")}: {data.student.externalId}
+              </Typography>
+            )}
+          </>
+        ) : (
+          t("teacher.classes.students.details.title")
+        )}
       </DialogTitle>
       <DialogContent dividers>
         {isLoading ? (

@@ -19,8 +19,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import api, { ENDPOINTS } from "@/lib/api";
 
 export const downloadUserImportTemplate = () => {
-  const header = "firstName,lastName,email,password,role\n";
-  const sample = "Jane,Doe,jane@example.com,Pass123,TEACHER\n";
+  const header = "firstName,lastName,email,password,role,externalId\n";
+  const sample = "Jane,Doe,jane@example.com,Pass123,TEACHER,UNI12345\n";
   const blob = new Blob([header + sample], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -37,6 +37,7 @@ interface ImportPreviewRow {
   email: string;
   password: string;
   role: string;
+  externalId?: string;
 }
 
 interface ImportDialogProps {
@@ -129,6 +130,7 @@ export function UserImportDialog({
           email: record.email,
           password: record.password,
           role: normalizedRole,
+          externalId: record.externalid || undefined,
         };
       } else {
         // Legacy format: split name
@@ -139,6 +141,7 @@ export function UserImportDialog({
           email: record.email,
           password: record.password,
           role: normalizedRole,
+          externalId: record.externalid || undefined,
         };
       }
     });
