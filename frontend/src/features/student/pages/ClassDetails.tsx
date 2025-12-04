@@ -16,14 +16,18 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import type { Class, User } from "@shared/types";
 
+import { useTranslation } from "@/hooks/useTranslation";
 import { StudentLayout } from "@/layouts/StudentLayout";
 import api, { ENDPOINTS } from "@/lib/api";
-import { useTranslation } from "@/hooks/useTranslation";
 
 type StudentQuizSummary = {
   id: string;
   title: string;
   isActive: boolean;
+  attemptLimit?: number | null;
+  availableUntil?: string | null;
+  studentAttemptCount?: number;
+  canTakeQuiz?: boolean;
 };
 
 type StudentLesson = {
@@ -92,43 +96,63 @@ export default function ClassDetails() {
                     <Typography variant="subtitle2" gutterBottom>
                       {t("student.classDetails.quizzes.title")}
                     </Typography>
-                    {lesson.quizzes.map((quiz) => (
-                      <Box
-                        key={quiz.id}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          mb: 1,
-                          gap: 2,
-                        }}
-                      >
-                        <Typography variant="body2">{quiz.title}</Typography>
-                        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                          <Chip
-                            label={
-                              quiz.isActive
-                                ? t("student.classDetails.quizzes.active")
-                                : t("student.classDetails.quizzes.inactive")
-                            }
-                            color={quiz.isActive ? "success" : "default"}
-                            size="small"
-                          />
-                          <Button
-                            variant="contained"
-                            size="small"
-                            disabled={!quiz.isActive}
-                            onClick={() =>
-                              navigate(
-                                `/student/classes/${classData.id}/lessons/${lesson.id}/quizzes/${quiz.id}`,
-                              )
-                            }
+                    {lesson.quizzes.map((quiz) => {
+                      // Determine if quiz can actually be taken
+                      // canTakeQuiz is calculated on backend, but we also check here for safety
+                      const canTakeQuiz =
+                        quiz.canTakeQuiz ??
+                        (quiz.isActive &&
+                          (quiz.studentAttemptCount ?? 0) <
+                            (quiz.attemptLimit ?? 1) &&
+                          (!quiz.availableUntil ||
+                            new Date(quiz.availableUntil).getTime() >
+                              Date.now()));
+
+                      return (
+                        <Box
+                          key={quiz.id}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            mb: 1,
+                            gap: 2,
+                          }}
+                        >
+                          <Typography variant="body2">{quiz.title}</Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 1,
+                              alignItems: "center",
+                            }}
                           >
-                            {t("student.classDetails.quizzes.takeQuiz")}
-                          </Button>
+                            <Chip
+                              label={
+                                canTakeQuiz
+                                  ? t("student.classDetails.quizzes.active")
+                                  : t("student.classDetails.quizzes.inactive")
+                              }
+                              color={canTakeQuiz ? "success" : "default"}
+                              size="small"
+                            />
+                            <Button
+                              variant={canTakeQuiz ? "contained" : "outlined"}
+                              size="small"
+                              onClick={() =>
+                                navigate(
+                                  `/student/classes/${classData.id}/lessons/${lesson.id}/quizzes/${quiz.id}`,
+                                )
+                              }
+                            >
+                              {canTakeQuiz
+                                ? t("student.classDetails.quizzes.takeQuiz")
+                                : t("student.classDetails.quizzes.viewQuiz")}
+                            </Button>
+                          </Box>
                         </Box>
-                      </Box>
-                    ))}
+                      );
+                    })}
                   </Box>
                 )}
               </CardContent>
@@ -158,9 +182,7 @@ export default function ClassDetails() {
         </Box>
       )}
 
-      {isError && (
-        <Alert severity="error">{t("student.classes.error")}</Alert>
-      )}
+      {isError && <Alert severity="error">{t("student.classes.error")}</Alert>}
 
       {classData && (
         <Box>

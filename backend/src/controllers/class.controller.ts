@@ -167,6 +167,119 @@ class ClassController {
         if (!isEnrolled) {
           return res.status(403).json({ error: "Unauthorized" });
         }
+
+        // For students, enrich quiz data with attempt information
+        if (classData.lessons && req.user?.id) {
+          const studentId = req.user.id;
+          const quizIds = classData.lessons.flatMap((lesson) =>
+            lesson.quizzes.map((quiz) => quiz.id),
+          );
+
+          // Get all student attempts for quizzes in this class
+          const studentAttempts = await prisma.response.groupBy({
+            by: ["quizId"],
+            where: {
+              quizId: { in: quizIds },
+              userId: studentId,
+            },
+            _count: {
+              id: true,
+            },
+          });
+
+          const attemptCountMap = new Map(
+            studentAttempts.map((attempt) => [
+              attempt.quizId,
+              attempt._count.id,
+            ]),
+          );
+
+          // Enrich each quiz with attempt information
+          classData.lessons = classData.lessons.map((lesson) => ({
+            ...lesson,
+            quizzes: lesson.quizzes.map((quiz) => {
+              const studentAttemptCount = attemptCountMap.get(quiz.id) ?? 0;
+              return {
+                ...quiz,
+                attemptLimit: null, // Will be fetched from full quiz data if needed
+                availableUntil: null, // Will be fetched from full quiz data if needed
+                studentAttemptCount,
+              };
+            }),
+          }));
+
+          // Fetch full quiz data to get attemptLimit and availableUntil
+          const fullQuizzes = await prisma.quiz.findMany({
+            where: { id: { in: quizIds } },
+            select: {
+              id: true,
+              attemptLimit: true,
+              availableUntil: true,
+              timeLimitSeconds: true,
+              activatedAt: true,
+            },
+          });
+
+          const quizDataMap = new Map(
+            fullQuizzes.map((q) => [
+              q.id,
+              {
+                attemptLimit: q.attemptLimit,
+                availableUntil: q.availableUntil,
+                timeLimitSeconds: q.timeLimitSeconds,
+                activatedAt: q.activatedAt,
+              },
+            ]),
+          );
+
+          // Merge full quiz data
+          classData.lessons = classData.lessons.map((lesson) => ({
+            ...lesson,
+            quizzes: lesson.quizzes.map((quiz) => {
+              const fullData = quizDataMap.get(quiz.id);
+              if (!fullData) return quiz;
+
+              const studentAttemptCount = attemptCountMap.get(quiz.id) ?? 0;
+              const attemptLimit = fullData.attemptLimit ?? 1;
+              const remainingAttempts = Math.max(
+                attemptLimit - studentAttemptCount,
+                0,
+              );
+
+              // Calculate deadline (same logic as getQuizDeadline)
+              const deadlineCandidates: number[] = [];
+              if (fullData.availableUntil) {
+                deadlineCandidates.push(
+                  new Date(fullData.availableUntil).getTime(),
+                );
+              }
+              if (fullData.timeLimitSeconds && fullData.activatedAt) {
+                deadlineCandidates.push(
+                  new Date(fullData.activatedAt).getTime() +
+                    fullData.timeLimitSeconds * 1000,
+                );
+              }
+              const deadline =
+                deadlineCandidates.length > 0
+                  ? new Date(Math.min(...deadlineCandidates))
+                  : null;
+
+              const isExpired = deadline
+                ? deadline.getTime() <= Date.now()
+                : false;
+              const canTakeQuiz =
+                quiz.isActive && remainingAttempts > 0 && !isExpired;
+
+              return {
+                ...quiz,
+                attemptLimit: fullData.attemptLimit,
+                availableUntil: fullData.availableUntil,
+                studentAttemptCount,
+                canTakeQuiz,
+              };
+            }),
+          }));
+        }
       }
 
       res.json(classData);
@@ -1065,9 +1178,7 @@ class ClassController {
           ...mapQuizSummary(quiz),
           bestScore:
             quiz.responses.length > 0
-              ? Math.max(
-                  ...quiz.responses.map((r) => Math.min(r.score, 1.0)),
-                )
+              ? Math.max(...quiz.responses.map((r) => Math.min(r.score, 1.0)))
               : 0,
           latestResponse: quiz.responses[0]
             ? {

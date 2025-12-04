@@ -14,19 +14,27 @@ export function RoleRoute({ roles }: RoleRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!user || !roles.includes(user.role)) {
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Normalize role to enum value for comparison
+  const userRole = user.role as UserRole;
+  const hasAccess = roles.includes(userRole);
+
+  if (!hasAccess) {
     // Redirect to appropriate dashboard based on user role
-    if (user?.role === UserRole.ADMIN) {
+    if (userRole === UserRole.ADMIN) {
       return <Navigate to="/admin" replace />;
     }
-    if (user?.role === UserRole.TEACHER) {
+    if (userRole === UserRole.TEACHER) {
       return <Navigate to="/teacher" replace />;
     }
-    if (user?.role === UserRole.STUDENT) {
+    if (userRole === UserRole.STUDENT) {
       return <Navigate to="/student" replace />;
     }
     return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
-} 
+}

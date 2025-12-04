@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+import { UserRole } from "@/enums/userRole";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { login } from "@/store/slices/auth";
@@ -58,12 +59,16 @@ export function LoginForm() {
       return result;
     },
     onSuccess: (data) => {
-      if (data.user.role === "ADMIN") {
+      if (data.user.role === UserRole.ADMIN) {
         navigate("/admin");
-      } else if (data.user.role === "TEACHER") {
+      } else if (data.user.role === UserRole.TEACHER) {
         navigate("/teacher");
-      } else {
+      } else if (data.user.role === UserRole.STUDENT) {
         navigate("/student");
+      } else {
+        // Fallback: redirect to login if role is unknown
+        console.error("Unknown user role:", data.user.role);
+        navigate("/login");
       }
       toast.success("Login successful!");
     },

@@ -571,6 +571,7 @@ export const en = {
         active: "Active",
         inactive: "Inactive",
         takeQuiz: "Take Quiz",
+        viewQuiz: "View Quiz",
         alreadySubmitted: "You have already submitted this quiz.",
       },
     },

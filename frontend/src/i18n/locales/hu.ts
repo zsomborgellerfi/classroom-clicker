@@ -93,7 +93,8 @@ export const hu: Translations = {
       },
       externalId: {
         label: "Külső azonosító",
-        helperText: "Opcionális egyedi azonosító külső forrásból (pl. egyetemi azonosító)",
+        helperText:
+          "Opcionális egyedi azonosító külső forrásból (pl. egyetemi azonosító)",
       },
       password: {
         label: "Jelszó",
@@ -572,6 +573,7 @@ export const hu: Translations = {
         active: "Aktív",
         inactive: "Inaktív",
         takeQuiz: "Kvíz kitöltése",
+        viewQuiz: "Kvíz megtekintése",
         alreadySubmitted: "Ezt a kvízt már beküldted.",
       },
     },

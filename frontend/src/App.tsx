@@ -119,12 +119,17 @@ function RoleBasedRedirect() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.role === UserRole.ADMIN) {
-      navigate("/admin");
-    } else if (user?.role === UserRole.TEACHER) {
-      navigate("/teacher");
-    } else if (user?.role === UserRole.STUDENT) {
-      navigate("/student");
+    if (!user) {
+      return;
+    }
+
+    const userRole = user.role as UserRole;
+    if (userRole === UserRole.ADMIN) {
+      navigate("/admin", { replace: true });
+    } else if (userRole === UserRole.TEACHER) {
+      navigate("/teacher", { replace: true });
+    } else if (userRole === UserRole.STUDENT) {
+      navigate("/student", { replace: true });
     }
   }, [user, navigate]);
 
