@@ -20,12 +20,12 @@ type QuizQuestionSeed = {
 
 type ResponseSeed = {
   user: UserRecord;
-  score: number;
   attemptNumber?: number;
   answers: {
     questionIndex: number;
     optionIndex: number;
   }[];
+  score?: number;
   submittedAtOffsetMinutes?: number;
 };
 
@@ -179,6 +179,11 @@ async function main() {
   const now = new Date();
   const minutesFromNow = (mins: number) =>
     new Date(now.getTime() + mins * 60 * 1000);
+  const yearsFromNow = (years: number) => {
+    const future = new Date(now.getTime());
+    future.setFullYear(future.getFullYear() + years);
+    return future;
+  };
 
   async function createQuizWithResponses({
     lessonId,
@@ -187,6 +192,7 @@ async function main() {
     attemptLimit = 1,
     timeLimitSeconds = null,
     availableUntil = null,
+    activatedOffsetMinutes = -10,
     questions,
     responses = [],
   }: {
@@ -196,6 +202,7 @@ async function main() {
     attemptLimit?: number | null;
     timeLimitSeconds?: number | null;
     availableUntil?: Date | null;
+    activatedOffsetMinutes?: number;
     questions: QuizQuestionSeed[];
     responses?: ResponseSeed[];
   }) {
@@ -207,7 +214,7 @@ async function main() {
         attemptLimit,
         timeLimitSeconds,
         availableUntil,
-        activatedAt: isActive ? minutesFromNow(-10) : null,
+        activatedAt: isActive ? minutesFromNow(activatedOffsetMinutes) : null,
         questions: {
           create: questions.map((question, questionIndex) => ({
             text: question.text,
@@ -233,30 +240,51 @@ async function main() {
     });
 
     for (const response of responses) {
+      const answersToCreate = response.answers.map((answer) => {
+        const question = quiz.questions[answer.questionIndex];
+        const desiredOptionText =
+          questions[answer.questionIndex]?.options?.[answer.optionIndex]?.text;
+        const option =
+          question?.options.find((opt) => opt.text === desiredOptionText) ||
+          question?.options[0];
+
+        if (!question || !option) {
+          throw new Error(
+            `Invalid answer reference in seed for quiz "${title}".`,
+          );
+        }
+
+        return {
+          questionId: question.id,
+          selectedOptionId: option.id,
+          isCorrect: option.isCorrect,
+        };
+      });
+
+      const correctCount = answersToCreate.reduce(
+        (total, answer) => total + (answer.isCorrect ? 1 : 0),
+        0,
+      );
+      const computedScore =
+        questions.length > 0 ? correctCount / questions.length : 0;
+      const normalizedScore =
+        response.score !== undefined ? response.score : computedScore;
+      const finalScore =
+        Math.abs(normalizedScore - computedScore) > 0.0001
+          ? computedScore
+          : Math.min(Math.max(normalizedScore, 0), 1);
+
       await prisma.response.create({
         data: {
           quizId: quiz.id,
           userId: response.user.id,
-          score: response.score,
+          score: finalScore,
           attemptNumber: response.attemptNumber ?? 1,
           submittedAt: response.submittedAtOffsetMinutes
             ? minutesFromNow(response.submittedAtOffsetMinutes)
             : new Date(),
           answers: {
-            create: response.answers.map((answer) => {
-              const question = quiz.questions[answer.questionIndex];
-              const desiredOptionText =
-                questions[answer.questionIndex].options[answer.optionIndex]
-                  .text;
-              const option =
-                question.options.find(
-                  (opt) => opt.text === desiredOptionText,
-                ) || question.options[0];
-              return {
-                questionId: question.id,
-                selectedOptionId: option.id,
-              };
-            }),
+            create: answersToCreate.map(({ isCorrect, ...answer }) => answer),
           },
         },
       });
@@ -269,7 +297,7 @@ async function main() {
     isActive: true,
     attemptLimit: 1,
     timeLimitSeconds: 600,
-    availableUntil: minutesFromNow(720),
+    availableUntil: yearsFromNow(3),
     questions: [
       {
         text: "Which element best represents a navigation menu?",
@@ -317,7 +345,7 @@ async function main() {
     isActive: true,
     attemptLimit: 2,
     timeLimitSeconds: 300,
-    availableUntil: minutesFromNow(720),
+    availableUntil: yearsFromNow(3),
     questions: [
       {
         text: "Which element represents the header for a document or section?",
@@ -350,7 +378,7 @@ async function main() {
     responses: [
       {
         user: student1,
-        score: 2 / 3, // 2/3 = 66.67%
+        score: 1 / 3, // 1/3 = 33.33%
         answers: [
           { questionIndex: 0, optionIndex: 1 },
           { questionIndex: 1, optionIndex: 0 },
@@ -387,7 +415,7 @@ async function main() {
     isActive: true,
     attemptLimit: 3,
     timeLimitSeconds: 900,
-    availableUntil: minutesFromNow(720),
+    availableUntil: yearsFromNow(3),
     questions: [
       {
         text: "Which keyword declares a block-scoped variable?",
@@ -444,7 +472,7 @@ async function main() {
     isActive: true,
     attemptLimit: 1,
     timeLimitSeconds: 420,
-    availableUntil: minutesFromNow(720),
+    availableUntil: yearsFromNow(3),
     questions: [
       {
         text: "Which API schedules work after the current call stack clears?",
@@ -485,7 +513,7 @@ async function main() {
     isActive: true,
     attemptLimit: 2,
     timeLimitSeconds: 600,
-    availableUntil: minutesFromNow(720),
+    availableUntil: yearsFromNow(3),
     questions: [
       {
         text: "Which data structure provides O(1) average lookup?",
@@ -543,7 +571,7 @@ async function main() {
     isActive: true,
     attemptLimit: 1,
     timeLimitSeconds: 480,
-    availableUntil: minutesFromNow(720),
+    availableUntil: yearsFromNow(3),
     questions: [
       {
         text: "Which algorithm has O(n log n) average complexity?",
@@ -578,6 +606,103 @@ async function main() {
         submittedAtOffsetMinutes: -200,
       },
     ],
+  });
+
+  // Fresh fillable quizzes to try right after seeding
+  await createQuizWithResponses({
+    lessonId: htmlLesson.id,
+    title: "Responsive Layout Check-in",
+    isActive: true,
+    attemptLimit: 2,
+    timeLimitSeconds: null,
+    availableUntil: yearsFromNow(5),
+    activatedOffsetMinutes: 0,
+    questions: [
+      {
+        text: "Which CSS unit adapts best to viewport width?",
+        options: [
+          { text: "vw", isCorrect: true },
+          { text: "px", isCorrect: false },
+          { text: "pt", isCorrect: false },
+          { text: "cm", isCorrect: false },
+        ],
+      },
+      {
+        text: "What media query targets devices wider than 1024px?",
+        options: [
+          { text: "@media (min-width: 1024px)", isCorrect: true },
+          { text: "@media screen and (max-width: 480px)", isCorrect: false },
+          { text: "@media orientation: landscape", isCorrect: false },
+          { text: "@media (prefers-reduced-motion)", isCorrect: false },
+        ],
+      },
+    ],
+    responses: [],
+  });
+
+  await createQuizWithResponses({
+    lessonId: jsLesson.id,
+    title: "ESNext Features Preview",
+    isActive: true,
+    attemptLimit: 2,
+    timeLimitSeconds: null,
+    availableUntil: yearsFromNow(5),
+    activatedOffsetMinutes: 0,
+    questions: [
+      {
+        text: "Which syntax correctly declares an async arrow function?",
+        options: [
+          { text: "const run = async () => {}", isCorrect: true },
+          { text: "async => const run() {}", isCorrect: false },
+          { text: "const run = () async {}", isCorrect: false },
+          { text: "function async run() {}", isCorrect: false },
+        ],
+      },
+      {
+        text: "What does optional chaining prevent?",
+        options: [
+          {
+            text: "Errors when accessing properties on undefined/null values",
+            isCorrect: true,
+          },
+          { text: "Network latency", isCorrect: false },
+          { text: "Promise rejection", isCorrect: false },
+          { text: "Variable hoisting", isCorrect: false },
+        ],
+      },
+    ],
+    responses: [],
+  });
+
+  await createQuizWithResponses({
+    lessonId: dsLesson.id,
+    title: "Graph Basics Warmup",
+    isActive: true,
+    attemptLimit: 2,
+    timeLimitSeconds: null,
+    availableUntil: yearsFromNow(5),
+    activatedOffsetMinutes: 0,
+    questions: [
+      {
+        text: "Which traversal uses a queue?",
+        options: [
+          { text: "Breadth-first search", isCorrect: true },
+          { text: "Depth-first search", isCorrect: false },
+          { text: "Binary search", isCorrect: false },
+          { text: "Merge sort", isCorrect: false },
+        ],
+      },
+      {
+        text: "What defines a connected graph?",
+        options: [
+          { text: "Every vertex is reachable from any other vertex", isCorrect: true },
+          { text: "All nodes have the same degree", isCorrect: false },
+          { text: "Edges only point one direction", isCorrect: false },
+          { text: "No cycles exist", isCorrect: false },
+        ],
+      },
+    ],
+    responses: [],
   });
 
   console.log("✅ Seed complete:");

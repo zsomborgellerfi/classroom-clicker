@@ -998,7 +998,7 @@ class ClassController {
 
       const [
         pastQuizzes,
-        upcomingQuiz,
+        candidateQuizzes,
         totalQuizzes,
         completedQuizzes,
         avgScore,
@@ -1053,7 +1053,7 @@ class ClassController {
           },
           take: 20,
         }),
-        prisma.quiz.findFirst({
+        prisma.quiz.findMany({
           where: {
             lesson: {
               class: {
@@ -1065,7 +1065,15 @@ class ClassController {
               },
             },
           },
-          include: {
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            isActive: true,
+            activatedAt: true,
+            availableUntil: true,
+            timeLimitSeconds: true,
+            attemptLimit: true,
             lesson: {
               select: {
                 id: true,
@@ -1087,7 +1095,7 @@ class ClassController {
               },
             },
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: [{ createdAt: "asc" }],
         }),
         prisma.quiz.count({
           where: {
@@ -1189,18 +1197,49 @@ class ClassController {
             : null,
         }));
 
-      // Determine if nextQuiz is fillable
-      let nextQuizFillable = false;
-      if (upcomingQuiz) {
-        const studentAttemptCount = upcomingQuiz.responses?.length ?? 0;
-        const attemptLimit = upcomingQuiz.attemptLimit ?? 1;
-        const hasAttemptsLeft = studentAttemptCount < attemptLimit;
-        const deadline = computeDeadline(upcomingQuiz);
+      const sortedCandidates = candidateQuizzes
+        .map((quiz) => ({
+          quiz,
+          opensAt: quiz.activatedAt ?? quiz.createdAt,
+          closesAt: computeDeadline(quiz),
+          attempts: {
+            count: quiz.responses?.length ?? 0,
+            limit: quiz.attemptLimit ?? 1,
+          },
+        }))
+        .sort((a, b) => a.opensAt.getTime() - b.opensAt.getTime());
+
+      const findFillable = (entry: {
+        quiz: {
+          isActive: boolean;
+          responses?: Array<{ id: string }>;
+        };
+        closesAt: Date | null;
+        attempts: { count: number; limit: number };
+      }) => {
+        const hasAttemptsLeft = entry.attempts.count < entry.attempts.limit;
         const isNotExpired =
-          deadline === null || deadline.getTime() > now.getTime();
-        nextQuizFillable =
-          upcomingQuiz.isActive && hasAttemptsLeft && isNotExpired;
-      }
+          entry.closesAt === null || entry.closesAt.getTime() > now.getTime();
+        return entry.quiz.isActive && hasAttemptsLeft && isNotExpired;
+      };
+
+      const nextFillable = sortedCandidates.find(findFillable);
+      const nextFuture = sortedCandidates.find((entry) => {
+        const hasAttemptsLeft = entry.attempts.count < entry.attempts.limit;
+        const isNotExpired =
+          entry.closesAt === null || entry.closesAt.getTime() > now.getTime();
+        return (
+          hasAttemptsLeft &&
+          isNotExpired &&
+          entry.opensAt.getTime() > now.getTime()
+        );
+      });
+
+      const upcomingQuizEntry = nextFillable ?? nextFuture ?? null;
+      const upcomingQuiz = upcomingQuizEntry?.quiz ?? null;
+      const nextQuizFillable = Boolean(
+        upcomingQuizEntry && nextFillable?.quiz === upcomingQuizEntry.quiz,
+      );
 
       res.json({
         pastQuizzes: closedPastQuizzes,
