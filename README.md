@@ -82,6 +82,8 @@ You need two dedicated `.env` files plus an optional root override:
    - `DATABASE_URL`: PostgreSQL connection string
    - `JWT_SECRET`: Secret key for JWT token signing
    - `JWT_REFRESH_SECRET`: Secret key for refresh tokens (if implemented)
+   - `ADMIN_EMAIL`: Email address for the default admin user (required for seeding)
+   - `ADMIN_PASSWORD`: Password for the default admin user (required for seeding)
    - `PORT`: Server port (default: 3000)
    - `CLIENT_URL`: Frontend URL for CORS (default: http://localhost:5173)
    - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`: SMTP configuration
@@ -127,6 +129,8 @@ npm run seed
 ```
 
 **Note**: When using Docker Compose, migrations and seeding happen automatically on container startup.
+
+**Important**: The seed script requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` to be set in `backend/.env`. These credentials will be used to create the default admin user during seeding.
 
 ### Running the Apps
 
@@ -175,6 +179,8 @@ Run everything (backend, frontend, Postgres, pgAdmin, nginx proxy) using helper 
 | `DATABASE_URL` | PostgreSQL connection string | - | Yes |
 | `JWT_SECRET` | Secret for JWT token signing | - | Yes |
 | `JWT_REFRESH_SECRET` | Secret for refresh tokens | - | No |
+| `ADMIN_EMAIL` | Email for default admin user (required for seeding) | - | Yes* |
+| `ADMIN_PASSWORD` | Password for default admin user (required for seeding) | - | Yes* |
 | `PORT` | Server port | `3000` | No |
 | `NODE_ENV` | Environment (development/production) | `development` | No |
 | `CLIENT_URL` | Frontend URL for CORS | `http://localhost:5173` | No |
@@ -186,6 +192,8 @@ Run everything (backend, frontend, Postgres, pgAdmin, nginx proxy) using helper 
 | `EMAIL_FROM` | Email sender address | - | No |
 | `DISABLE_EMAIL` | Skip email delivery (log instead) | `false` | No |
 | `EXPOSE_RESET_TOKEN` | Return reset tokens in API responses | `false` | No |
+
+\* Required when running the seed script (`npm run seed`)
 
 ### Frontend Environment Variables
 

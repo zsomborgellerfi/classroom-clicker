@@ -30,7 +30,15 @@ type ResponseSeed = {
 };
 
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      "ADMIN_EMAIL and ADMIN_PASSWORD must be set in the .env file",
+    );
+  }
+
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
   });
@@ -44,10 +52,7 @@ async function main() {
     "Seeding database with demo users, classes, lessons and quizzes…",
   );
 
-  const hashedPassword = await bcrypt.hash(
-    process.env.ADMIN_PASSWORD || "test",
-    10,
-  );
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   await prisma.user.create({
     data: {
@@ -695,7 +700,10 @@ async function main() {
       {
         text: "What defines a connected graph?",
         options: [
-          { text: "Every vertex is reachable from any other vertex", isCorrect: true },
+          {
+            text: "Every vertex is reachable from any other vertex",
+            isCorrect: true,
+          },
           { text: "All nodes have the same degree", isCorrect: false },
           { text: "Edges only point one direction", isCorrect: false },
           { text: "No cycles exist", isCorrect: false },
